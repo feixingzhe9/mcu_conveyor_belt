@@ -18,6 +18,7 @@ static void task_create(void)
     OSTaskCreate(can_send_task,             (void *)0,  (OS_STK*)&can_send_task_stk[CAN_SEND_TASK_STK_SIZE - 1],                            CAN_SEND_TASK_PRIO);
 //    OSTaskCreate(serial_led_task,           (void *)0,  (OS_STK*)&serial_led_task_stk[SERIAL_LED_TASK_STK_SIZE - 1],                        SERIAL_LED_TASK_PRIO);
     OSTaskCreate(conveyor_belt_task,        (void *)0,  (OS_STK*)&conveyor_belt_task_stk[CONVEYOR_BELT_TASK_STK_SIZE - 1],                  CONVEYOR_BELT_PRIO);
+    OSTaskCreate(pho_switch_status_task,    (void *)0,  (OS_STK*)&pho_switch_status_task_stk[PHO_SWITCH_STATUS_TASK_STK_SIZE - 1],          PHO_SWITCH_STATUS_PRIO);
 
 }
 
