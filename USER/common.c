@@ -1,6 +1,6 @@
 /*
  *  Author: Kaka Xie
- *  brief: user configuration ucosii
+ *  brief: user configuration of ucosii
  */
 
 #include "common.h"
@@ -8,15 +8,9 @@
 static void task_create(void)
 {
     OSTaskCreate(indicator_led_task,        (void *)0,  (OS_STK*)&indicator_led_task_stk[INDICATOR_LED_STK_SIZE - 1],                       INDICATOR_LED_TASK_PRIO);
-//    OSTaskCreate(battery_task,              (void *)0,  (OS_STK*)&battery_task_stk[BATTERY_TASK_STK_SIZE - 1],                              BATTERY_TASK_PRIO);
     OSTaskCreate(can_protocol_task,         (void *)0,  (OS_STK*)&can_protocol_task_stk[CAN_PROTOCOL_TASK_STK_SIZE - 1],                    CAN_RPOTOCOL_TASK_PRIO);
-//    OSTaskCreate(power_on_off_task,         (void *)0,  (OS_STK*)&power_on_off_stk[POWER_ON_OFF_STK_SIZE - 1],                              POWER_ON_OFF_TASK_PRIO);
-    OSTaskCreate(switch_task,               (void *)0,  (OS_STK*)&switch_task_stk[SWITCH_TASK_STK_SIZE - 1],                                SWITCH_TASK_PRIO);
-//    OSTaskCreate(power_on_off_x86_task,     (void *)0,  (OS_STK*)&x86_power_on_off_stk[X86_POWER_ON_OFF_STK_SIZE - 1],                      X86_POWER_ON_OFF_TASK_PRIO);
-//    OSTaskCreate(power_on_off_rk_task,      (void *)0,  (OS_STK*)&rk_power_on_off_stk[RK_POWER_ON_OFF_STK_SIZE - 1],                        RK_POWER_ON_OFF_TASK_PRIO);
-//    OSTaskCreate(charge_task,               (void *)0,  (OS_STK*)&charge_task_stk[CHARGE_TASK_STK_SIZE - 1],                                CHARGE_TASK_PRIO);
+    //OSTaskCreate(switch_task,               (void *)0,  (OS_STK*)&switch_task_stk[SWITCH_TASK_STK_SIZE - 1],                                SWITCH_TASK_PRIO);
     OSTaskCreate(can_send_task,             (void *)0,  (OS_STK*)&can_send_task_stk[CAN_SEND_TASK_STK_SIZE - 1],                            CAN_SEND_TASK_PRIO);
-//    OSTaskCreate(serial_led_task,           (void *)0,  (OS_STK*)&serial_led_task_stk[SERIAL_LED_TASK_STK_SIZE - 1],                        SERIAL_LED_TASK_PRIO);
     OSTaskCreate(conveyor_belt_task,        (void *)0,  (OS_STK*)&conveyor_belt_task_stk[CONVEYOR_BELT_TASK_STK_SIZE - 1],                  CONVEYOR_BELT_PRIO);
     OSTaskCreate(pho_switch_status_task,    (void *)0,  (OS_STK*)&pho_switch_status_task_stk[PHO_SWITCH_STATUS_TASK_STK_SIZE - 1],          PHO_SWITCH_STATUS_PRIO);
 
@@ -25,12 +19,6 @@ static void task_create(void)
 static void sem_create(void)
 {
     powerkey_long_press_sem = OSSemCreate(0);
-//    x86_power_on_sem = OSSemCreate(0);
-//    x86_power_off_sem = OSSemCreate(0);
-//    rk_power_on_sem = OSSemCreate(0);
-//    rk_power_off_sem = OSSemCreate(0);
-//    power_on_sem = OSSemCreate(0);
-//    power_off_sem = OSSemCreate(0);
 }
 
 static int mailbox_create(void)

@@ -142,9 +142,9 @@ uint8_t get_charge_gpio_value(void);
 uint8_t get_recharge_gpio_value(void);
 
 void power_ctrl(uint32_t power_en, uint8_t on_off);
-uint8_t set_conveyor_belt_forward(void);
-uint8_t set_conveyor_belt_reverse(void);
-uint8_t set_conveyor_belt_stop(void);
+uint8_t forward_conveyor_belt(void);
+uint8_t reverse_conveyor_belt(void);
+uint8_t stop_conveyor_belt(void);
 uint8_t get_pho_switch_1_state(void);
 uint8_t get_pho_switch_2_state(void);
 uint8_t get_pho_switch_3_state(void);

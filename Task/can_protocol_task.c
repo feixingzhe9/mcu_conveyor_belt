@@ -145,7 +145,7 @@ void upload_sys_state(void)
     id.can_id_t.dest_mac_id = 0;////
     id.can_id_t.func_id = CAN_FUN_ID_TRIGGER;
     id.can_id_t.source_id = CAN_SOURCE_ID_GET_SYS_STATE;
-    id.can_id_t.src_mac_id = POWERBOARD_CAN_MAC_SRC_ID;////
+    id.can_id_t.src_mac_id = CONVEYOR_CAN_MAC_SRC_ID;////
     can_buf.id = id.canx_id;
     can_buf.data[0] = 0;
     *(uint16_t*)&can_buf.data[1] = sys_status->sys_status;
@@ -160,7 +160,7 @@ void upload_conveyor_belt_status(uint8_t status)
     id.can_id_t.dest_mac_id = 0;////
     id.can_id_t.func_id = CAN_FUN_ID_TRIGGER;
     id.can_id_t.source_id = CAN_SOURCE_ID_SET_CONVEYOR_BELT_DIRCTION;
-    id.can_id_t.src_mac_id = POWERBOARD_CAN_MAC_SRC_ID;////
+    id.can_id_t.src_mac_id = CONVEYOR_CAN_MAC_SRC_ID;////
     can_buf.id = id.canx_id;
     can_buf.data_len = 1;
     can_buf.data[0] = status;
@@ -172,7 +172,7 @@ uint16_t CmdProcessing(can_id_union *id, uint8_t *data_in, uint16_t data_len, ui
     id->can_id_t.ack = 1;
     id->can_id_t.ack = 1;
     id->can_id_t.dest_mac_id = id->can_id_t.src_mac_id;
-    id->can_id_t.src_mac_id = POWERBOARD_CAN_MAC_SRC_ID;
+    id->can_id_t.src_mac_id = CONVEYOR_CAN_MAC_SRC_ID;
     id->can_id_t.res = 0;
     switch(id->can_id_t.func_id)
     {
@@ -350,7 +350,7 @@ void can_protocol_task(void *pdata)
             seg_polo = rx_buf.can_data_t.seg_polo;
             seg_num = rx_buf.can_data_t.seg_num;
             OSMemPut(can_rcv_buf_mem_handle, can_rcv_buf);
-            if(id.can_id_t.dest_mac_id == POWERBOARD_CAN_MAC_SRC_ID)
+            if(id.can_id_t.dest_mac_id == CONVEYOR_CAN_MAC_SRC_ID)
             {
                 if(rx_buf.can_data_t.seg_polo == ONLYONCE)
                 {

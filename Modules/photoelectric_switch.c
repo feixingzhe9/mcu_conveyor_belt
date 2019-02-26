@@ -6,6 +6,7 @@
 #include "photoelectric_switch.h"
 #include "platform.h"
 
+uint8_t pho_switch_state = 0;
 
 void pho_switch_init(void)
 {

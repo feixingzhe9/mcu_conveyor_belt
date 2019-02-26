@@ -196,24 +196,24 @@ uint8_t set_conveyor_stop(void)
     return 0;
 }
 
-uint8_t set_conveyor_belt_forward(void)
+uint8_t forward_conveyor_belt(void)
 {
     set_conveyor_start();
     GPIO_ResetBits(GPIOF, GPIO_Pin_13);
     return 0;
 }
 
-uint8_t set_conveyor_belt_reverse(void)
+uint8_t reverse_conveyor_belt(void)
 {
     set_conveyor_start();
     GPIO_SetBits(GPIOF, GPIO_Pin_13);
     return 0;
 }
 
-uint8_t set_conveyor_belt_stop(void)
+uint8_t stop_conveyor_belt(void)
 {
     set_conveyor_stop();
-    return 0;
+    return 1;
 }
 
 uint8_t get_pho_switch_1_state(void)
