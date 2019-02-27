@@ -4,20 +4,20 @@
 #include "sys.h"
 
 
-#define CONVEYOR_BELT_STATUS_STOP       0x00
-#define CONVEYOR_BELT_STATUS_LOAD       0x01
-#define CONVEYOR_BELT_STATUS_UNLOAD     0x02
+#define CONVEYOR_BELT_STATUS_STOP               0x00
+#define CONVEYOR_BELT_STATUS_LOAD               0x01
+#define CONVEYOR_BELT_STATUS_UNLOAD             0x02
 
-#define CONVEYOR_LOAD_FINISHED          0x01
-#define CONVEYOR_UNLOAD_FINISHED        0x02
+#define CONVEYOR_LOAD_FINISHED_OK               0x01
+#define CONVEYOR_UNLOAD_FINISHED_OK             0x02
 
-#define CONVEYOR_BELT_LOAD_TIME_OUT     0xF0
-#define CONVEYOR_BELT_UNLOAD_TIME_OUT   0xF1
-#define CONVEYOR_BELT_STATUS_ERROR      0xFF
+#define CONVEYOR_BELT_LOAD_TIME_OUT             0xF0
+#define CONVEYOR_BELT_UNLOAD_TIME_OUT           0xF1
+#define CONVEYOR_BELT_STATUS_ERROR              0xFF
 
-#define CONVEYOR_PHO_SWITCH_ERR
-#define CONVEYOR_BUSY
-#define CONVEYOR_ERR_NO_OBJ
+#define CONVEYOR_BELT_EXEC_OK                   0x01
+#define CONVEYOR_BELT_IS_OCCUPIED               0x81
+#define CONVEYOR_BELT_IS_ALREADY_EMPTY          0x82
 
 typedef struct
 {

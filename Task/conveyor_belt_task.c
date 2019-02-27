@@ -16,7 +16,7 @@ OS_STK pho_switch_status_task_stk[PHO_SWITCH_STATUS_TASK_STK_SIZE] = {0};
 extern void upload_conveyor_belt_status(uint8_t status);
 
 
-#define PHO_SWITCH_STATE_BUF_SIZE   3
+#define PHO_SWITCH_STATE_BUF_SIZE   7
 void pho_switch_status_task(void *pdata)
 {
     uint8_t state_buf[PHO_SWITCH_STATE_BUF_SIZE] = {0};
@@ -87,8 +87,8 @@ void pho_switch_status_task(void *pdata)
 
 #define TICK_DELAY_MS           100
 #define STOP_TICK_CNT           (2000 / TICK_DELAY_MS)
-#define LOAD_TIME_OUT_CNT       (10000 / TICK_DELAY_MS)
-#define UNLOAD_TIME_OUT_CNT     (10000 / TICK_DELAY_MS)
+#define LOAD_TIME_OUT_CNT       (20000 / TICK_DELAY_MS)
+#define UNLOAD_TIME_OUT_CNT     (15000 / TICK_DELAY_MS)
 #define UNLOAD_STOP_CNT         (2000 / TICK_DELAY_MS)
 void conveyor_belt_task(void *pdata)
 {
@@ -134,7 +134,6 @@ void conveyor_belt_task(void *pdata)
         {
             if(work_mode == CONVEYOR_BELT_STATUS_LOAD)
             {
-                forward_conveyor_belt();
                 load_cnt++;
                 switch(load_state)
                 {
@@ -146,7 +145,11 @@ void conveyor_belt_task(void *pdata)
                             conveyor_belt.work_mode = CONVEYOR_BELT_STATUS_STOP;
                             OS_EXIT_CRITICAL();
                             work_mode = CONVEYOR_BELT_STATUS_STOP;
-                            upload_conveyor_belt_status(CONVEYOR_LOAD_FINISHED);
+                            upload_conveyor_belt_status(CONVEYOR_LOAD_FINISHED_OK);
+                        }
+                        else
+                        {
+                            forward_conveyor_belt();
                         }
                         break;
                     default :
@@ -191,7 +194,7 @@ void conveyor_belt_task(void *pdata)
                             OS_EXIT_CRITICAL();
                             work_mode = CONVEYOR_BELT_STATUS_STOP;
                             unload_state = 0;
-                            upload_conveyor_belt_status(CONVEYOR_UNLOAD_FINISHED);
+                            upload_conveyor_belt_status(CONVEYOR_UNLOAD_FINISHED_OK);
                         }
                         break;
 

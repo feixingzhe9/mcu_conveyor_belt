@@ -216,47 +216,51 @@ uint16_t CmdProcessing(can_id_union *id, uint8_t *data_in, uint16_t data_len, ui
 
                 case CAN_SOURCE_ID_SET_CONVEYOR_BELT_DIRCTION:
                 {
+                    uint8_t ret = 0;
                     if(data_len == 1)
                     {
                         if(data_in[0] <= CONVEYOR_BELT_STATUS_UNLOAD)
                         {
                             if(data_in[0] == CONVEYOR_BELT_STATUS_STOP)
                             {
-                                if(set_conveyor_belt_stop())
+                                ret = set_conveyor_belt_stop();
+                                if(ret == CONVEYOR_BELT_EXEC_OK)
                                 {
                                     data_out[0] = 0x01; //successful
                                     data_out[1] = CONVEYOR_BELT_STATUS_STOP;
-                                    data_out[2] = 0;
+                                    data_out[2] = CONVEYOR_BELT_EXEC_OK;
                                 }
                             }
                             else if(data_in[0] == CONVEYOR_BELT_STATUS_LOAD)
                             {
-                                if(set_conveyor_belt_load())
+                                ret = set_conveyor_belt_load();
+                                if(ret == CONVEYOR_BELT_EXEC_OK)
                                 {
                                     data_out[0] = 0x01; //successful
                                     data_out[1] = CONVEYOR_BELT_STATUS_LOAD;
-                                    data_out[2] = 0;
+                                    data_out[2] = CONVEYOR_BELT_EXEC_OK;
                                 }
                                 else
                                 {
                                     data_out[0] = 0x00; //failed
                                     data_out[1] = CONVEYOR_BELT_STATUS_LOAD;
-                                    data_out[2] = CONVEYOR_BELT_STATUS_ERROR;
+                                    data_out[2] = ret;
                                 }
                             }
                             else if(data_in[0] == CONVEYOR_BELT_STATUS_UNLOAD)
                             {
-                                if(set_conveyor_belt_unload())
+                                ret = set_conveyor_belt_unload();
+                                if(ret == CONVEYOR_BELT_EXEC_OK)
                                 {
                                     data_out[0] = 0x01; //successful
                                     data_out[1] = CONVEYOR_BELT_STATUS_UNLOAD;
-                                    data_out[2] = 0;
+                                    data_out[2] = CONVEYOR_BELT_EXEC_OK;
                                 }
                                 else
                                 {
                                     data_out[0] = 0x00; //failed
                                     data_out[1] = CONVEYOR_BELT_STATUS_UNLOAD;
-                                    data_out[2] = CONVEYOR_BELT_STATUS_ERROR;
+                                    data_out[2] = ret;
                                 }
                             }
                             return 3;
