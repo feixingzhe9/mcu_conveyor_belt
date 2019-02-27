@@ -5,20 +5,14 @@
 
 #include "led_task.h"
 #include "can_protocol_task.h"
-
-#include "switch_task.h"
-#include "charge_task.h"
-
 #include "conveyor_belt_task.h"
 
 typedef enum
 {
     CAN_SEND_TASK_PRIO = 5,
     CAN_RPOTOCOL_TASK_PRIO,
-    CHARGE_TASK_PRIO,
-    CONVEYOR_BELT_PRIO,
     PHO_SWITCH_STATUS_PRIO,
-    SWITCH_TASK_PRIO,
+    CONVEYOR_BELT_PRIO,
     INDICATOR_LED_TASK_PRIO
 }task_prio_e;
 

@@ -1,13 +1,5 @@
-/**
-******************************************************************************
-* @file    can.c
-* @author  Kaka.Xie
-* @brief   This file provides CAN driver.
-******************************************************************************
-*/
-
-#ifndef __CAN_PROTOCOL_H
-#define __CAN_PROTOCOL_H
+#ifndef __CAN_PROTOCOL_TASK_H__
+#define __CAN_PROTOCOL_TASK_H__
 #include "stm32f10x.h"
 #include "ucos_ii.h"
 #include "can_fifo.h"
@@ -19,15 +11,11 @@ void can_protocol_task(void *pdata);
 void can_send_task(void *pdata);
 
 
-
-
 #define HW_VERSION                      "NO_VERSION"
 #define SW_VERSION                      "MCU_CONVEYOR_V001"
 #define PROTOCOL_VERSION                "20170619P0001"
 
 #define CMD_NOT_FOUND   0
-
-
 
 #define CAN_USED    CAN1
 #define CAN_ID          (0x434D0000)      //CM
@@ -83,12 +71,15 @@ typedef struct
     free_buf_fn free_buf;
 }can_long_buf_t;
 
+#if     CAN_LONG_BUF_NUM <  1
+#error  "CAN_PROTOCOL_TASK.h: CAN_LONG_BUF_NUM  can not be 0"
+#endif
 
 #define CAN_SEND_BUF_SIZE           5
 #define CAN_SEND_BUF_QUEUE_NUM      CAN_SEND_BUF_SIZE
 
-#define CAN_RCV_BUF_SIZE           5
-#define CAN_RCV_BUF_QUEUE_NUM      CAN_RCV_BUF_SIZE
+#define CAN_RCV_BUF_SIZE            5
+#define CAN_RCV_BUF_QUEUE_NUM       CAN_RCV_BUF_SIZE
 
 typedef struct
 {
@@ -104,14 +95,11 @@ extern OS_MEM *can_send_buf_mem_handle;
 extern OS_EVENT *can_send_buf_queue_handle;
 extern void* can_send_buf_queue_p[CAN_SEND_BUF_QUEUE_NUM];
 
-
-
 extern can_pkg_t can_rcv_buf_mem[CAN_RCV_BUF_SIZE][1];
 extern OS_MEM *can_rcv_buf_mem_handle;
 
 extern OS_EVENT *can_rcv_buf_queue_handle;
 extern void* can_rcv_buf_queue_p[CAN_RCV_BUF_QUEUE_NUM];
-
 
 void can_protocol_period( void );
 

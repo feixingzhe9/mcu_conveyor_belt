@@ -176,10 +176,8 @@ uint16_t CmdProcessing(can_id_union *id, uint8_t *data_in, uint16_t data_len, ui
     id->can_id_t.res = 0;
     switch(id->can_id_t.func_id)
     {
-
-
         case CAN_FUN_ID_RESET:
-//            platform_mcu_reset();
+            mcu_restart();
             break;
         case CAN_FUN_ID_WRITE:
         case CAN_FUN_ID_READ:
@@ -212,7 +210,6 @@ uint16_t CmdProcessing(can_id_union *id, uint8_t *data_in, uint16_t data_len, ui
                 case CAN_SOURCE_ID_GET_SYS_STATE:
                     *(uint16_t*)&data_out[1] = sys_status->sys_status;
                     return 3;
-
 
                 case CAN_SOURCE_ID_SET_CONVEYOR_BELT_DIRCTION:
                 {
@@ -272,7 +269,6 @@ uint16_t CmdProcessing(can_id_union *id, uint8_t *data_in, uint16_t data_len, ui
                     break;
             }
 
-
         default:
             break;
     }
@@ -316,7 +312,6 @@ void can_long_buf_init(void)
     can_long_frame_buf->get_one_free_buf = get_one_free_buf;
     can_long_frame_buf->get_the_buf_by_id = get_the_buf_by_id;
     can_long_frame_buf->free_buf = free_buf;
-//    can_fifo_init(can_fifo, can_pkg, CAN_FIFO_SIZE);
 }
 
 #define CAN_LONG_FRAME_TIME_OUT     5 * OS_TICKS_PER_SEC

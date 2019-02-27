@@ -5,8 +5,6 @@
 
 #include "led_task.h"
 #include "delay.h"
-#include "sys.h"
-#include "usart.h"
 #include "led.h"
 
 

@@ -81,7 +81,7 @@ void DebugMon_Handler(void)
 //}
 
 
-void DMA1_Channel4_IRQHandler(void)     //USART1-TX
+void DMA1_Channel4_IRQHandler(void)
 {
     OSIntEnter();
     if (DMA_GetITStatus(DMA1_IT_TC4) != RESET)
@@ -94,7 +94,7 @@ void DMA1_Channel4_IRQHandler(void)     //USART1-TX
     OSIntExit();
 }
 
-void DMA1_Channel5_IRQHandler(void)     //USART1-TX
+void DMA1_Channel5_IRQHandler(void)
 {
     OSIntEnter();
     if (DMA_GetITStatus(DMA1_IT_TC5) != RESET)
@@ -107,10 +107,6 @@ void DMA1_Channel5_IRQHandler(void)     //USART1-TX
     OSIntExit();
 }
 
-
-uint32_t uart1_rcv_test_cnt = 0;
-
-
 void USART1_IRQHandler(void)
 {
     volatile unsigned char temper=0;
@@ -120,14 +116,10 @@ void USART1_IRQHandler(void)
     {
         temper = USART1->SR;
         temper = USART1->DR;    //清USART_IT_IDLE
-        uart1_rcv_test_cnt++;
     }
     OSIntExit();
 }
 
-
-
-//#include "battery.h"
 void UART4_IRQHandler(void)
 {
     volatile unsigned char temper=0;
@@ -138,13 +130,11 @@ void UART4_IRQHandler(void)
     {
         temper = UART4->SR;
         temper = UART4->DR;    //清USART_IT_IDLE
-//        battery_data_recieved(temper);
-        uart1_rcv_test_cnt++;
     }
     OSIntExit();
 }
 
-void DMA1_Channel7_IRQHandler(void)     //USART2-TX
+void DMA1_Channel7_IRQHandler(void)
 {
     OSIntEnter();
     if (DMA_GetITStatus(DMA1_IT_TC7) != RESET)
@@ -157,7 +147,7 @@ void DMA1_Channel7_IRQHandler(void)     //USART2-TX
     OSIntExit();
 }
 
-void DMA1_Channel6_IRQHandler(void)     //USART2-TX
+void DMA1_Channel6_IRQHandler(void)
 {
     OSIntEnter();
     if (DMA_GetITStatus(DMA1_IT_TC6) != RESET)
@@ -170,7 +160,7 @@ void DMA1_Channel6_IRQHandler(void)     //USART2-TX
     OSIntExit();
 }
 
-uint32_t rcv_dma_test_cnt = 0;
+
 
 /*    USART2 IDLE interrupt    */
 void USART2_IRQHandler(void)
@@ -180,7 +170,6 @@ void USART2_IRQHandler(void)
     OSIntEnter();
     if (USART_GetITStatus(USART2, USART_IT_IDLE) != RESET)
     {
-        rcv_dma_test_cnt++;
         temper = USART2->SR;
         temper = USART2->DR;    //清USART_IT_IDLE
 
@@ -191,8 +180,6 @@ void USART2_IRQHandler(void)
     OSIntExit();
 }
 
-
-#include "platform.h"
 
 void EXTI9_5_IRQHandler(void)
 {
@@ -206,7 +193,6 @@ void EXTI9_5_IRQHandler(void)
     {
         EXTI_ClearITPendingBit(EXTI_Line7);
     }
-//    OSMboxPost(charge_state_mailbox, (void*)charge_state_tmp);// 此处的邮箱可以更改为信号量
     OSIntExit();
 }
 
@@ -215,14 +201,6 @@ void EXTI9_5_IRQHandler(void)
 extern CanRxMsg RxMessage;
 void USB_LP_CAN1_RX0_IRQHandler(void)
 {
-#if 0
-    can_pkg_t can_pkg_tmp;
-    CAN_Receive(CAN1, CAN_FIFO0, &RxMessage);
-    can_pkg_tmp.id.canx_id = RxMessage.ExtId;
-    can_pkg_tmp.len = RxMessage.DLC;
-    memcpy(can_pkg_tmp.data.can_data, RxMessage.Data, can_pkg_tmp.len);
-    put_can_pkg_to_fifo(can_fifo, can_pkg_tmp);
-#else
     can_pkg_t *can_buf;
     uint8_t err = 0;
     CAN_Receive(CAN1, CAN_FIFO0, &RxMessage);
@@ -235,9 +213,7 @@ void USB_LP_CAN1_RX0_IRQHandler(void)
         memcpy(can_buf->data.can_data, RxMessage.Data, can_buf->len);
         OSQPost(can_rcv_buf_queue_handle, (void *)can_buf);
     }
-#endif
 }
-
 
 /******************************************************************************/
 /*                 STM32F10x Peripherals Interrupt Handlers                   */

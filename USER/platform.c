@@ -4,14 +4,10 @@
  */
 
 #include "platform.h"
-#include "delay.h"
-#include "stdio.h"
-
 #include "led.h"
 #include "can.h"
-#include "timer.h"
 #include "sys.h"
-#include "id.h"
+
 
 sys_status_t sys_status_ram = {0};
 sys_status_t *sys_status = &sys_status_ram;
@@ -21,16 +17,6 @@ const platform_gpio_t platform_gpio_pins[] =
 
     [PLATFORM_GPIO_SYS_LED]                     = { GPIOC,  GPIO_Pin_9 },
 
-    [PLATFORM_GPIO_5V_EN]                       = { GPIOE,  GPIO_Pin_7 },
-    [PLATFORM_GPIO_12V_EN]                      = { GPIOE,  GPIO_Pin_8 },
-    [PLATFORM_GPIO_24V_EN]                      = { GPIOE,  GPIO_Pin_9 },
-
-    [PLATFORM_GPIO_PWR_NV]                      = { GPIOF, GPIO_Pin_13 },
-
-    [PLATFORM_GPIO_PWR_RESERVE]                 = { GPIOG,  GPIO_Pin_1 },
-
-    [PLATFORM_GPIO_VSYS_24V_NV_EN]              = { GPIOG,  GPIO_Pin_6 },
-
     [PLATFORM_GPIO_PHO_SWITCH_1]                = {GPIOC, GPIO_Pin_10},
     [PLATFORM_GPIO_PHO_SWITCH_2]                = {GPIOB, GPIO_Pin_10},
     [PLATFORM_GPIO_PHO_SWITCH_3]                = {GPIOC, GPIO_Pin_11},
@@ -39,12 +25,10 @@ const platform_gpio_t platform_gpio_pins[] =
 };
 
 
-
 uint32_t get_tick(void)
 {
     return OSTimeGet();
 }
-
 
 void mcu_restart(void)
 {
@@ -61,7 +45,6 @@ static void input_gpio_init(void)
     GPIO_InitStructure.GPIO_Pin = GPIO_Pin_11;
     GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IPD;
     GPIO_Init(GPIOD, &GPIO_InitStructure);
-
 }
 
 static void output_gpio_init(void)
@@ -82,38 +65,6 @@ static void output_gpio_init(void)
     GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
     GPIO_Init(GPIOG, &GPIO_InitStructure);
 }
-
-static void charge_gpio_init(void)
-{
-    GPIO_InitTypeDef  GPIO_InitStructure;
-    EXTI_InitTypeDef exit_init_structure;
-    NVIC_InitTypeDef NVIC_InitStructure;
-
-    RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOB, ENABLE);   // πƒ‹ ±÷”
-
-
-    GPIO_InitStructure.GPIO_Pin = GPIO_Pin_6 | GPIO_Pin_7;
-    GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IPU;
-    GPIO_Init(GPIOB, &GPIO_InitStructure);
-
-    RCC_APB2PeriphClockCmd(RCC_APB2Periph_AFIO, ENABLE);
-
-    GPIO_EXTILineConfig(GPIO_PortSourceGPIOB, GPIO_PinSource6);
-    GPIO_EXTILineConfig(GPIO_PortSourceGPIOB, GPIO_PinSource7);
-
-    exit_init_structure.EXTI_Line = EXTI_Line6 | EXTI_Line7;
-    exit_init_structure.EXTI_Mode = EXTI_Mode_Interrupt;
-    exit_init_structure.EXTI_Trigger = EXTI_Trigger_Rising_Falling;
-    exit_init_structure.EXTI_LineCmd = ENABLE;
-    EXTI_Init(&exit_init_structure);
-
-    NVIC_InitStructure.NVIC_IRQChannel = EXTI9_5_IRQn;
-    NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 0x01;
-    NVIC_InitStructure.NVIC_IRQChannelSubPriority = 0x03;
-    NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
-    NVIC_Init(&NVIC_InitStructure);
-}
-
 
 static void init_reset_gpio(void)
 {

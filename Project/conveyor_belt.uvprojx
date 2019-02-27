@@ -186,7 +186,7 @@
             <hadIRAM2>0</hadIRAM2>
             <hadIROM2>0</hadIROM2>
             <StupSel>8</StupSel>
-            <useUlib>0</useUlib>
+            <useUlib>1</useUlib>
             <EndSel>0</EndSel>
             <uLtcg>0</uLtcg>
             <nSecure>0</nSecure>
@@ -420,11 +420,6 @@
               <FilePath>..\Task\can_protocol_task.c</FilePath>
             </File>
             <File>
-              <FileName>switch_task.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\Task\switch_task.c</FilePath>
-            </File>
-            <File>
               <FileName>conveyor_belt_task.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\Task\conveyor_belt_task.c</FilePath>
@@ -538,11 +533,6 @@
               <FileName>stm32f10x_dma.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\STM32F10x_FWLib\src\stm32f10x_dma.c</FilePath>
-            </File>
-            <File>
-              <FileName>stm32f10x_flash.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\STM32F10x_FWLib\src\stm32f10x_flash.c</FilePath>
             </File>
             <File>
               <FileName>stm32f10x_can.c</FileName>

@@ -3,15 +3,10 @@
  *  brief: main entrance
  */
 
-#include "led.h"
 #include "delay.h"
-#include "sys.h"
-#include "usart.h"
 #include "includes.h"
-#include "math.h"
 #include "common.h"
 #include "platform.h"
-#include "flash.h"
 
 
 uint8_t test_id = 0;
