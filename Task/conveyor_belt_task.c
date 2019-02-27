@@ -84,15 +84,7 @@ void pho_switch_status_task(void *pdata)
     }
 }
 
-/*
-1.传送带装货流程：
-    光电开关从未触发到触发
-        1,2,3号初始值为未触发 -> 1 号触发 -> 1和2 同时触发 -> 1,2和3  (或者 2和3) 同时触发 -> 结束
 
-2.传送带卸货流程：
-    光电开关从触发到未触发
-    1,2,3号 或者 2和3 初始值触发 -> 3 号未触发, 1和2 触发-> 1和2 同时触发 -> 1,2和3  (或者 2和3) 同时触发 -> 结束
-*/
 #define TICK_DELAY_MS           100
 #define STOP_TICK_CNT           (2000 / TICK_DELAY_MS)
 #define LOAD_TIME_OUT_CNT       (10000 / TICK_DELAY_MS)
@@ -105,6 +97,8 @@ void conveyor_belt_task(void *pdata)
     uint32_t tick_cnt = 0;
     uint32_t stop_cnt = 0;
     uint32_t unload_stop_cnt = 0;
+    uint32_t load_cnt = 0;
+    uint32_t unload_cnt = 0;
     uint8_t load_state = 0;
     uint8_t unload_state = 0;
     uint8_t switch_state = 0;
@@ -129,6 +123,8 @@ void conveyor_belt_task(void *pdata)
             pre_work_mode = work_mode;
             stop_conveyor_belt();
             stop_cnt = STOP_TICK_CNT;
+            load_cnt = 0;
+            unload_cnt = 0;
         }
         if(stop_cnt > 0)
         {
@@ -139,6 +135,7 @@ void conveyor_belt_task(void *pdata)
             if(work_mode == CONVEYOR_BELT_STATUS_LOAD)
             {
                 forward_conveyor_belt();
+                load_cnt++;
                 switch(load_state)
                 {
                     case 0:
@@ -155,10 +152,19 @@ void conveyor_belt_task(void *pdata)
                     default :
                         break;
                 }
+                if(load_cnt >= LOAD_TIME_OUT_CNT)
+                {
+                    OS_ENTER_CRITICAL();
+                    conveyor_belt.work_mode = CONVEYOR_BELT_STATUS_STOP;
+                    OS_EXIT_CRITICAL();
+                    work_mode = CONVEYOR_BELT_STATUS_STOP;
+                    upload_conveyor_belt_status(CONVEYOR_BELT_LOAD_TIME_OUT);
+                }
             }
             else if(work_mode == CONVEYOR_BELT_STATUS_UNLOAD)
             {
                 reverse_conveyor_belt();
+                unload_cnt++;
                 switch(unload_state)
                 {
                     case 0:
@@ -191,6 +197,14 @@ void conveyor_belt_task(void *pdata)
 
                     default :
                         break;
+                }
+                if(unload_cnt >= UNLOAD_TIME_OUT_CNT)
+                {
+                    OS_ENTER_CRITICAL();
+                    conveyor_belt.work_mode = CONVEYOR_BELT_STATUS_STOP;
+                    OS_EXIT_CRITICAL();
+                    work_mode = CONVEYOR_BELT_STATUS_STOP;
+                    upload_conveyor_belt_status(CONVEYOR_BELT_UNLOAD_TIME_OUT);
                 }
             }
         }
