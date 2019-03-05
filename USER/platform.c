@@ -17,11 +17,14 @@ const platform_gpio_t platform_gpio_pins[] =
 
     [PLATFORM_GPIO_SYS_LED]                     = { GPIOC,  GPIO_Pin_9 },
 
-    [PLATFORM_GPIO_PHO_SWITCH_1]                = {GPIOC, GPIO_Pin_10},
+    //[PLATFORM_GPIO_PHO_SWITCH_1]                = {GPIOC, GPIO_Pin_10},
+    [PLATFORM_GPIO_PHO_SWITCH_3]                = {GPIOC, GPIO_Pin_10},
     [PLATFORM_GPIO_PHO_SWITCH_2]                = {GPIOB, GPIO_Pin_10},
-    [PLATFORM_GPIO_PHO_SWITCH_3]                = {GPIOC, GPIO_Pin_11},
+    //[PLATFORM_GPIO_PHO_SWITCH_3]                = {GPIOC, GPIO_Pin_11},
+    [PLATFORM_GPIO_PHO_SWITCH_1]                = {GPIOC, GPIO_Pin_11},
     [PLATFORM_GPIO_MOTOR_REVERSE_FORWARD]       = {GPIOF, GPIO_Pin_13},
     [PLATFORM_GPIO_MOTOR_START_STOP]            = {GPIOG, GPIO_Pin_1},
+    [PLATFORM_GPIO_LOCK_CTRL]                   = {GPIOF, GPIO_Pin_4},
 };
 
 
@@ -116,6 +119,46 @@ static void motor_ctrl_gpio_init(void)
     GPIO_ResetBits(GPIOG, GPIO_Pin_1);
 }
 
+static void module_12_v_init(void)
+{
+    GPIO_InitTypeDef  GPIO_InitStructure;
+
+    /*GPIO_E*/
+    RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOE, ENABLE);
+    GPIO_InitStructure.GPIO_Pin = GPIO_Pin_8;
+    GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;
+    GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+    GPIO_Init(GPIOE, &GPIO_InitStructure);
+
+    GPIO_ResetBits(GPIOE, GPIO_Pin_8);
+
+}
+static void lock_gpio_init(void)
+{
+    GPIO_InitTypeDef  GPIO_InitStructure;
+
+    module_12_v_init();
+    /*GPIO_F*/
+    RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOF, ENABLE);
+    GPIO_InitStructure.GPIO_Pin = GPIO_Pin_4;
+    GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;
+    GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+    GPIO_Init(GPIOF, &GPIO_InitStructure);
+
+    GPIO_ResetBits(GPIOF, GPIO_Pin_4);
+
+}
+
+void lock_ctrl_lock(void)
+{
+    GPIO_ResetBits(GPIOF, GPIO_Pin_4);
+}
+
+void lock_ctrl_unlock(void)
+{
+    GPIO_SetBits(GPIOF, GPIO_Pin_4);
+}
+
 static void platform_gpio_init(void)
 {
     output_gpio_init();
@@ -126,6 +169,8 @@ static void platform_gpio_init(void)
     //charge_gpio_init();
     pho_switch_init();
     motor_ctrl_gpio_init();
+    lock_gpio_init();
+
 }
 
 
@@ -150,14 +195,15 @@ uint8_t set_conveyor_stop(void)
 uint8_t forward_conveyor_belt(void)
 {
     set_conveyor_start();
-    GPIO_ResetBits(GPIOF, GPIO_Pin_13);
+    //GPIO_ResetBits(GPIOF, GPIO_Pin_13);
+    GPIO_SetBits(GPIOF, GPIO_Pin_13);
     return 0;
 }
 
 uint8_t reverse_conveyor_belt(void)
 {
     set_conveyor_start();
-    GPIO_SetBits(GPIOF, GPIO_Pin_13);
+    GPIO_ResetBits(GPIOF, GPIO_Pin_13);
     return 0;
 }
 
@@ -169,7 +215,7 @@ uint8_t stop_conveyor_belt(void)
 
 uint8_t get_pho_switch_1_state(void)
 {
-    if(GPIO_ReadInputDataBit(GPIOC, GPIO_Pin_10) == 1)
+    if(GPIO_ReadInputDataBit(GPIOC, GPIO_Pin_11) == 1)
     {
         return 0;
     }
@@ -193,7 +239,7 @@ uint8_t get_pho_switch_2_state(void)
 
 uint8_t get_pho_switch_3_state(void)
 {
-    if(GPIO_ReadInputDataBit(GPIOC, GPIO_Pin_11) == 1)
+    if(GPIO_ReadInputDataBit(GPIOC, GPIO_Pin_10) == 1)
     {
         return 0;
     }

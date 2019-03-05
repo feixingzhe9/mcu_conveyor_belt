@@ -15,10 +15,13 @@
 #define CONVEYOR_BELT_UNLOAD_TIME_OUT           0xF1
 #define CONVEYOR_BELT_STATUS_ERROR              0xFF
 
-#define CONVEYOR_BELT_EXEC_OK                   0x01
+#define CONVEYOR_BELT_EXEC_OK                   0x00
 #define CONVEYOR_BELT_IS_OCCUPIED               0x81
 #define CONVEYOR_BELT_IS_ALREADY_EMPTY          0x82
 
+
+#define LOCK_STATUS_LOCK                        0x01
+#define LOCK_STATUS_UNLOCK                      0x00
 typedef struct
 {
     uint8_t work_mode;
@@ -34,4 +37,5 @@ void conveyor_belt_init(void);
 uint8_t set_conveyor_belt_load(void);
 uint8_t set_conveyor_belt_unload(void);
 uint8_t set_conveyor_belt_stop(void);
+uint8_t lock_ctrl(uint8_t state);
 #endif

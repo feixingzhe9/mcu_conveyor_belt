@@ -13,6 +13,7 @@ typedef enum
     PLATFORM_GPIO_PHO_SWITCH_3,
     PLATFORM_GPIO_MOTOR_START_STOP,
     PLATFORM_GPIO_MOTOR_REVERSE_FORWARD,
+    PLATFORM_GPIO_LOCK_CTRL,
 
     PLATFORM_GPIO_MAX, /* Denotes the total number of GPIO port aliases. Not a valid GPIO alias */
     PLATFORM_GPIO_NONE,
@@ -47,5 +48,7 @@ uint8_t stop_conveyor_belt(void);
 uint8_t get_pho_switch_1_state(void);
 uint8_t get_pho_switch_2_state(void);
 uint8_t get_pho_switch_3_state(void);
+void lock_ctrl_unlock(void);
+void lock_ctrl_lock(void);
 
 #endif

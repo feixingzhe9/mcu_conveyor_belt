@@ -15,6 +15,7 @@
 #include "can.h"
 #include "can_fifo.h"
 #include "conveyor_belt.h"
+#include "photoelectric_switch.h"
 
 //#define CanProtocolLog(format, ...)  custom_log("can protocol", format, ##__VA_ARGS__)
 
@@ -167,6 +168,21 @@ void upload_conveyor_belt_status(uint8_t status)
     send_can_msg(&can_buf);
 }
 
+void upload_pho_elec_switch_status(uint8_t status)
+{
+    can_id_union id;
+    can_buf_t can_buf;
+    id.can_id_t.ack = 0;
+    id.can_id_t.dest_mac_id = 0;////
+    id.can_id_t.func_id = CAN_FUN_ID_TRIGGER;
+    id.can_id_t.source_id = CAN_SOURCE_ID_GET_PHO_ELEC_SWITCH_STATE;
+    id.can_id_t.src_mac_id = CONVEYOR_CAN_MAC_SRC_ID;////
+    can_buf.id = id.canx_id;
+    can_buf.data_len = 1;
+    can_buf.data[0] = status;
+    send_can_msg(&can_buf);
+}
+
 uint16_t CmdProcessing(can_id_union *id, uint8_t *data_in, uint16_t data_len, uint8_t *data_out)
 {
     id->can_id_t.ack = 1;
@@ -265,6 +281,41 @@ uint16_t CmdProcessing(can_id_union *id, uint8_t *data_in, uint16_t data_len, ui
                     }
                     return 0;
                 }
+
+                case CAN_SOURCE_ID_GET_PHO_ELEC_SWITCH_STATE:
+                {
+                    uint8_t state = 0;
+                    if(data_len == 1)
+                    {
+                        //OS_ENTER_CRITICAL();
+                        state = pho_switch_state;
+                        //OS_EXIT_CRITICAL();
+                        data_out[0] = state;
+                        return 1;
+                    }
+                    return 0;
+                }
+
+                case CAN_SOURCE_ID_LOCK_CTRL:
+                {
+                    uint8_t state = data_in[0];
+                    if(data_len == 1)
+                    {
+                        if((state == LOCK_STATUS_LOCK) || (state == LOCK_STATUS_UNLOCK))
+                        {
+                            lock_ctrl(state);
+                            data_out[0] = 0;
+                            return 1;
+                        }
+                        else
+                        {
+                            data_out[0] = 0xff;
+                            return 0;
+                        }
+                    }
+                    return 0;
+                }
+
                 default :
                     break;
             }
