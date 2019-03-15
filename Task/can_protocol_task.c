@@ -230,7 +230,7 @@ uint16_t CmdProcessing(can_id_union *id, uint8_t *data_in, uint16_t data_len, ui
                 case CAN_SOURCE_ID_SET_CONVEYOR_BELT_DIRCTION:
                 {
                     uint8_t ret = 0;
-                    if(data_len == 1)
+                    if(data_len <= 2)
                     {
                         if(data_in[0] <= CONVEYOR_BELT_STATUS_UNLOAD)
                         {
@@ -246,18 +246,22 @@ uint16_t CmdProcessing(can_id_union *id, uint8_t *data_in, uint16_t data_len, ui
                             }
                             else if(data_in[0] == CONVEYOR_BELT_STATUS_LOAD)
                             {
-                                ret = set_conveyor_belt_load();
-                                if(ret == CONVEYOR_BELT_EXEC_OK)
+                                if(data_in[1] < 2)
                                 {
-                                    data_out[0] = 0x01; //successful
-                                    data_out[1] = CONVEYOR_BELT_STATUS_LOAD;
-                                    data_out[2] = CONVEYOR_BELT_EXEC_OK;
-                                }
-                                else
-                                {
-                                    data_out[0] = 0x00; //failed
-                                    data_out[1] = CONVEYOR_BELT_STATUS_LOAD;
-                                    data_out[2] = ret;
+                                    uint8_t need_lock = data_in[1];
+                                    ret = set_conveyor_belt_load(need_lock);
+                                    if(ret == CONVEYOR_BELT_EXEC_OK)
+                                    {
+                                        data_out[0] = 0x01; //successful
+                                        data_out[1] = CONVEYOR_BELT_STATUS_LOAD;
+                                        data_out[2] = CONVEYOR_BELT_EXEC_OK;
+                                    }
+                                    else
+                                    {
+                                        data_out[0] = 0x00; //failed
+                                        data_out[1] = CONVEYOR_BELT_STATUS_LOAD;
+                                        data_out[2] = ret;
+                                    }
                                 }
                             }
                             else if(data_in[0] == CONVEYOR_BELT_STATUS_UNLOAD)

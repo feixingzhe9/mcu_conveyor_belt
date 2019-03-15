@@ -201,6 +201,7 @@ void EXTI9_5_IRQHandler(void)
 extern CanRxMsg RxMessage;
 void USB_LP_CAN1_RX0_IRQHandler(void)
 {
+    OSIntEnter();
     can_pkg_t *can_buf;
     uint8_t err = 0;
     CAN_Receive(CAN1, CAN_FIFO0, &RxMessage);
@@ -213,6 +214,7 @@ void USB_LP_CAN1_RX0_IRQHandler(void)
         memcpy(can_buf->data.can_data, RxMessage.Data, can_buf->len);
         OSQPost(can_rcv_buf_queue_handle, (void *)can_buf);
     }
+    OSIntExit();
 }
 
 /******************************************************************************/

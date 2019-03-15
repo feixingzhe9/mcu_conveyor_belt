@@ -27,6 +27,7 @@ typedef struct
     uint8_t work_mode;
     uint8_t err_status;
     uint8_t pho_switch_status;
+    uint8_t need_lock;
     //uint8_t motor_speed;
     //uint8_t motor_dir;
 }conveyor_belt_t;
@@ -34,7 +35,7 @@ typedef struct
 extern conveyor_belt_t conveyor_belt;
 
 void conveyor_belt_init(void);
-uint8_t set_conveyor_belt_load(void);
+uint8_t set_conveyor_belt_load(uint8_t need_lock);
 uint8_t set_conveyor_belt_unload(void);
 uint8_t set_conveyor_belt_stop(void);
 uint8_t lock_ctrl(uint8_t state);

@@ -15,12 +15,13 @@ void conveyor_belt_init(void)
 
 }
 
-uint8_t set_conveyor_belt_load(void)
+uint8_t set_conveyor_belt_load(uint8_t need_lock)
 {
     uint8_t state = pho_switch_state;
     if(state == 0)
     {
         conveyor_belt.work_mode = CONVEYOR_BELT_STATUS_LOAD;
+        conveyor_belt.need_lock = need_lock;
         return CONVEYOR_BELT_EXEC_OK;
     }
     else
