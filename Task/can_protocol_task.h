@@ -84,6 +84,12 @@ typedef struct
 #define CAN_RCV_BUF_SIZE            5
 #define CAN_RCV_BUF_QUEUE_NUM       CAN_RCV_BUF_SIZE
 
+
+#define CAN_UPLOAD_ACK_SIZE         10
+#define CAN_UPLOAD_ACK_QUEUE_NUM    CAN_UPLOAD_ACK_SIZE
+
+#define CAN_BUF_INSIDE_DATA_SIZE    64
+
 typedef struct
 {
     uint32_t id;
@@ -91,6 +97,12 @@ typedef struct
     uint8_t data[64];
 }__attribute__ ((__packed__)) can_buf_t;
 
+
+typedef struct
+{
+    uint8_t serial_num;
+    can_id_union id;
+}can_upload_ack_t;
 
 extern can_buf_t can_send_buf_mem[CAN_SEND_BUF_SIZE][1];
 extern OS_MEM *can_send_buf_mem_handle;
@@ -103,6 +115,12 @@ extern OS_MEM *can_rcv_buf_mem_handle;
 
 extern OS_EVENT *can_rcv_buf_queue_handle;
 extern void* can_rcv_buf_queue_p[CAN_RCV_BUF_QUEUE_NUM];
+
+extern can_upload_ack_t can_upload_ack_mem[CAN_UPLOAD_ACK_SIZE][1];
+extern OS_MEM *can_upload_ack_mem_handle;
+
+extern OS_EVENT *can_upload_ack_queue_handle;
+extern void* can_upload_ack_queue_p[CAN_UPLOAD_ACK_QUEUE_NUM];
 
 void can_protocol_period( void );
 

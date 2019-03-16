@@ -145,7 +145,7 @@ static void lock_gpio_init(void)
     GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
     GPIO_Init(GPIOF, &GPIO_InitStructure);
 
-    GPIO_ResetBits(GPIOF, GPIO_Pin_4);
+    GPIO_SetBits(GPIOF, GPIO_Pin_4);
 
 }
 

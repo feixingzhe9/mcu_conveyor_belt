@@ -132,9 +132,9 @@ void conveyor_belt_task(void *pdata)
                     case 0: //forward
                         if(switch_state & PHO_SWITCH_3_TRIGGERED)
                         {
+                            stop_conveyor_belt();   //stop immediately !
                             if(conveyor_belt.need_lock == 0)
                             {
-                                stop_conveyor_belt();   //stop immediately !
                                 load_state = 2;
                             }
                             else
@@ -151,7 +151,7 @@ void conveyor_belt_task(void *pdata)
                     case 1:     //delay and lock
                         if(conveyor_belt.need_lock == 1)
                         {
-                            delay_ms(800);
+                            //delay_ms(800);
                             lock_ctrl(LOCK_STATUS_LOCK);
                         }
                         load_state = 2;
@@ -163,6 +163,7 @@ void conveyor_belt_task(void *pdata)
                         OS_EXIT_CRITICAL();
                         work_mode = CONVEYOR_BELT_STATUS_STOP;
                         upload_conveyor_belt_status(CONVEYOR_LOAD_FINISHED_OK);
+                        load_state = 0;
                         break;
 
                     default :
@@ -175,11 +176,11 @@ void conveyor_belt_task(void *pdata)
                     OS_EXIT_CRITICAL();
                     work_mode = CONVEYOR_BELT_STATUS_STOP;
                     upload_conveyor_belt_status(CONVEYOR_BELT_LOAD_TIME_OUT);
+                    load_state = 0;
                 }
             }
             else if(work_mode == CONVEYOR_BELT_STATUS_UNLOAD)
             {
-                reverse_conveyor_belt();
                 unload_cnt++;
                 switch(unload_state)
                 {
@@ -190,6 +191,7 @@ void conveyor_belt_task(void *pdata)
                         break;
 
                     case 1:     //
+                        reverse_conveyor_belt();
                         if(switch_state == 0)
                         {
                             unload_state = 2;
@@ -200,7 +202,7 @@ void conveyor_belt_task(void *pdata)
                     case 2:
                         if(switch_state > 0)
                         {
-                            unload_state = 0;
+                            unload_state = 1;
                         }
                         if(unload_stop_cnt > 0)
                         {
@@ -227,6 +229,7 @@ void conveyor_belt_task(void *pdata)
                     OS_EXIT_CRITICAL();
                     work_mode = CONVEYOR_BELT_STATUS_STOP;
                     upload_conveyor_belt_status(CONVEYOR_BELT_UNLOAD_TIME_OUT);
+                    unload_state = 0;
                 }
             }
         }
