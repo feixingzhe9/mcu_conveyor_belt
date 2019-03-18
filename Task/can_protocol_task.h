@@ -12,7 +12,7 @@ void can_send_task(void *pdata);
 
 
 #define HW_VERSION                      "NO_VERSION"
-#define SW_VERSION                      "MCU_CONVEYOR_V001"
+#define SW_VERSION                      "MCU_CONVEYOR_V002"
 #define PROTOCOL_VERSION                "20170619P0001"
 
 #define CMD_NOT_FOUND   0
@@ -129,5 +129,6 @@ int send_can_msg(can_buf_t *can_msg);
 
 void upload_sys_state(void);
 void upload_conveyor_belt_status(uint8_t status);
+void upload_pho_state(uint8_t state);
 
 #endif

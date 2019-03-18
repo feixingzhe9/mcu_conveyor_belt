@@ -174,6 +174,21 @@ void upload_conveyor_belt_status(uint8_t status)
     send_can_msg(&can_buf);
 }
 
+void upload_pho_state(uint8_t state)
+{
+    can_id_union id;
+    can_buf_t can_buf;
+    id.can_id_t.ack = 0;
+    id.can_id_t.dest_mac_id = 0;////
+    id.can_id_t.func_id = CAN_FUN_ID_TRIGGER;
+    id.can_id_t.source_id = CAN_SOURCE_ID_GET_PHO_ELEC_SWITCH_STATE;
+    id.can_id_t.src_mac_id = CONVEYOR_CAN_MAC_SRC_ID;////
+    can_buf.id = id.canx_id;
+    can_buf.data_len = 1;
+    can_buf.data[0] = state;
+    send_can_msg(&can_buf);
+}
+
 void upload_pho_elec_switch_status(uint8_t status)
 {
     can_id_union id;

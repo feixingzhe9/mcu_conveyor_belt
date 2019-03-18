@@ -8,13 +8,36 @@
 #include "platform.h"
 #include "photoelectric_switch.h"
 #include "conveyor_belt.h"
+#include "can_protocol_task.h"
 #include <string.h>
 
 OS_STK conveyor_belt_task_stk[CONVEYOR_BELT_TASK_STK_SIZE] = {0};
 OS_STK pho_switch_status_task_stk[PHO_SWITCH_STATUS_TASK_STK_SIZE] = {0};
 
+
+OS_STK pho_state_upload_task_stk[PHO_STATE_UPLOAD_TASK_STK_SIZE] = {0};
+
+
+OS_EVENT * pho_state_mailbox;
+
 extern void upload_conveyor_belt_status(uint8_t status);
 
+
+void upload_pho_state_upload_task(void *pdata)
+{
+    uint8_t err = 0;
+    uint32_t *pho_state = 0;
+    delay_ms(500);
+    while(1)
+    {
+        pho_state = (uint32_t *)OSMboxPend(pho_state_mailbox, 0, &err);
+        if((err == OS_ERR_NONE) && (pho_state != (void *)0))
+        {
+            upload_pho_state(*pho_state);
+            delay_ms(50);
+        }
+    }
+}
 
 #define PHO_SWITCH_STATE_BUF_SIZE   7
 void pho_switch_status_task(void *pdata)
@@ -22,6 +45,8 @@ void pho_switch_status_task(void *pdata)
     uint8_t state_buf[PHO_SWITCH_STATE_BUF_SIZE] = {0};
     uint8_t state_cnt_buf[PHO_SWITCH_NUM_MAX] = {0};
     uint8_t state_tmp = 0;
+    uint32_t state_ram = 0;
+    uint8_t pre_state = 0;
     uint8_t cnt = 0;
     uint8_t i = 0;
     delay_ms(5000);
@@ -80,6 +105,12 @@ void pho_switch_status_task(void *pdata)
         //pho_switch_state = get_pho_switch_state();
         pho_switch_state = state_tmp;
         OS_EXIT_CRITICAL();
+        if(pre_state != state_tmp)
+        {
+            state_ram = state_tmp;
+            OSMboxPost(pho_state_mailbox, (void*)&state_ram);
+        }
+        pre_state = state_tmp;
         delay_ms(20);
     }
 }

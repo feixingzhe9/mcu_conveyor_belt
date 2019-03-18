@@ -7,11 +7,12 @@
 
 static void task_create(void)
 {
-    OSTaskCreate(can_protocol_task,         (void *)0,  (OS_STK*)&can_protocol_task_stk[CAN_PROTOCOL_TASK_STK_SIZE - 1],                    CAN_RPOTOCOL_TASK_PRIO);
-    OSTaskCreate(can_send_task,             (void *)0,  (OS_STK*)&can_send_task_stk[CAN_SEND_TASK_STK_SIZE - 1],                            CAN_SEND_TASK_PRIO);
-    OSTaskCreate(pho_switch_status_task,    (void *)0,  (OS_STK*)&pho_switch_status_task_stk[PHO_SWITCH_STATUS_TASK_STK_SIZE - 1],          PHO_SWITCH_STATUS_PRIO);
-    OSTaskCreate(conveyor_belt_task,        (void *)0,  (OS_STK*)&conveyor_belt_task_stk[CONVEYOR_BELT_TASK_STK_SIZE - 1],                  CONVEYOR_BELT_PRIO);
-    OSTaskCreate(indicator_led_task,        (void *)0,  (OS_STK*)&indicator_led_task_stk[INDICATOR_LED_STK_SIZE - 1],                       INDICATOR_LED_TASK_PRIO);
+    OSTaskCreate(can_protocol_task,                 (void *)0,  (OS_STK*)&can_protocol_task_stk[CAN_PROTOCOL_TASK_STK_SIZE - 1],                    CAN_RPOTOCOL_TASK_PRIO);
+    OSTaskCreate(can_send_task,                     (void *)0,  (OS_STK*)&can_send_task_stk[CAN_SEND_TASK_STK_SIZE - 1],                            CAN_SEND_TASK_PRIO);
+    OSTaskCreate(pho_switch_status_task,            (void *)0,  (OS_STK*)&pho_switch_status_task_stk[PHO_SWITCH_STATUS_TASK_STK_SIZE - 1],          PHO_SWITCH_STATUS_PRIO);
+    OSTaskCreate(conveyor_belt_task,                (void *)0,  (OS_STK*)&conveyor_belt_task_stk[CONVEYOR_BELT_TASK_STK_SIZE - 1],                  CONVEYOR_BELT_PRIO);
+    OSTaskCreate(indicator_led_task,                (void *)0,  (OS_STK*)&indicator_led_task_stk[INDICATOR_LED_STK_SIZE - 1],                       INDICATOR_LED_TASK_PRIO);
+    OSTaskCreate(upload_pho_state_upload_task,      (void *)0,  (OS_STK*)&pho_state_upload_task_stk[PHO_STATE_UPLOAD_TASK_STK_SIZE - 1],            PHO_STATE_UPLOAD_TASK_PRIO);
 }
 
 static void sem_create(void)
@@ -21,6 +22,14 @@ static void sem_create(void)
 
 static int mailbox_create(void)
 {
+    pho_state_mailbox = OSMboxCreate((void*)0);
+    if(pho_state_mailbox == 0)
+    {
+         /*
+        todo: err process
+        */
+//        return -1;
+    }
     return 0;
 }
 
