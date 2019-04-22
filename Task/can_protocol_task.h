@@ -12,7 +12,7 @@ void can_send_task(void *pdata);
 
 
 #define HW_VERSION                      "NO_VERSION"
-#define SW_VERSION                      "MCU_CONVEYOR_V002"
+#define SW_VERSION                      "MCU_CONVEYOR_V004"
 #define PROTOCOL_VERSION                "20170619P0001"
 
 #define CMD_NOT_FOUND   0

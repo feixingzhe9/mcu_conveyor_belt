@@ -117,9 +117,9 @@ void pho_switch_status_task(void *pdata)
 
 
 #define TICK_DELAY_MS           20
-#define STOP_TICK_CNT           (2000 / TICK_DELAY_MS)
-#define LOAD_TIME_OUT_CNT       (20000 / TICK_DELAY_MS)
-#define UNLOAD_TIME_OUT_CNT     (15000 / TICK_DELAY_MS)
+#define STOP_TICK_CNT           (500 / TICK_DELAY_MS)
+#define LOAD_TIME_OUT_CNT       (120000 / TICK_DELAY_MS)
+#define UNLOAD_TIME_OUT_CNT     (120000 / TICK_DELAY_MS)
 #define UNLOAD_STOP_CNT         (2000 / TICK_DELAY_MS)
 void conveyor_belt_task(void *pdata)
 {
