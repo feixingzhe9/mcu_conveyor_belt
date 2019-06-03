@@ -21,7 +21,7 @@ const platform_gpio_t platform_gpio_pins[] =
     [PLATFORM_GPIO_PHO_SWITCH_1]                = {GPIOB, GPIO_Pin_6},
     [PLATFORM_GPIO_MOTOR_DIR]                   = {GPIOA, GPIO_Pin_6},
     [PLATFORM_GPIO_MOTOR_EN]                    = {GPIOA, GPIO_Pin_5},
-    [PLATFORM_GPIO_MOTOR_PWR_EN]                = {GPIOA, GPIO_Pin_6},
+    [PLATFORM_GPIO_MOTOR_PWR_EN]                = {GPIOA, GPIO_Pin_4},
     [PLATFORM_GPIO_LOCK_CTRL]                   = {GPIOB, GPIO_Pin_7},
 };
 
@@ -136,17 +136,20 @@ static void platform_gpio_init(void)
     motor_power_ctrl_gpio_init();
     motor_ctrl_gpio_init();
     lock_gpio_init();
+    extern uint8_t set_conveyor_belt_load(uint8_t need_lock);
+    extern uint8_t set_conveyor_belt_unload(void);
+    //set_conveyor_belt_load(1);
 }
 
 uint8_t set_conveyor_start(void)
 {
-    GPIO_SetBits(platform_gpio_pins[PLATFORM_GPIO_MOTOR_DIR].GPIOx, platform_gpio_pins[PLATFORM_GPIO_MOTOR_DIR].GPIO_Pin);
+    GPIO_SetBits(platform_gpio_pins[PLATFORM_GPIO_MOTOR_EN].GPIOx, platform_gpio_pins[PLATFORM_GPIO_MOTOR_EN].GPIO_Pin);
     return 0;
 }
 
 uint8_t set_conveyor_stop(void)
 {
-    GPIO_ResetBits(platform_gpio_pins[PLATFORM_GPIO_MOTOR_DIR].GPIOx, platform_gpio_pins[PLATFORM_GPIO_MOTOR_DIR].GPIO_Pin);
+    GPIO_ResetBits(platform_gpio_pins[PLATFORM_GPIO_MOTOR_EN].GPIOx, platform_gpio_pins[PLATFORM_GPIO_MOTOR_EN].GPIO_Pin);
     return 0;
 }
 

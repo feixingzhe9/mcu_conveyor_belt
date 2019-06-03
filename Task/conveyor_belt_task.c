@@ -49,7 +49,7 @@ void pho_switch_status_task(void *pdata)
     uint8_t pre_state = 0;
     uint8_t cnt = 0;
     uint8_t i = 0;
-    delay_ms(5000);
+    delay_ms(1000);
     while(1)
     {
         state_buf[cnt] = get_pho_switch_state();
@@ -134,6 +134,7 @@ void conveyor_belt_task(void *pdata)
     uint8_t unload_state = 0;
     uint8_t switch_state = 0;
     delay_ms(5000);
+    set_conveyor_belt_unload();
     while(1)
     {
 
@@ -166,29 +167,49 @@ void conveyor_belt_task(void *pdata)
                             stop_conveyor_belt();   //stop immediately !
                             if(conveyor_belt.need_lock == 0)
                             {
-                                load_state = 2;
+                                load_state = 4;
                             }
                             else
                             {
-                                load_state = 1;
+                                load_state = 3;
                             }
                         }
                         else
                         {
-                            forward_conveyor_belt();
+                            load_state = 1;
                         }
                         break;
 
-                    case 1:     //delay and lock
+                    case 1:
+                        forward_conveyor_belt();
+                        load_state = 2;
+                        break;
+
+                    case 2:
+                        if(switch_state & PHO_SWITCH_3_TRIGGERED)
+                        {
+                            stop_conveyor_belt();   //stop immediately !
+                            if(conveyor_belt.need_lock == 0)
+                            {
+                                load_state = 4;
+                            }
+                            else
+                            {
+                                load_state = 3;
+                            }
+                        }
+                        break;
+
+                    case 3:     //delay and lock
                         if(conveyor_belt.need_lock == 1)
                         {
                             //delay_ms(800);
                             lock_ctrl(LOCK_STATUS_LOCK);
                         }
-                        load_state = 2;
+                        load_state = 4;
                         break;
 
-                    case 2:     //load finished
+                    case 4:     //load finished
                         OS_ENTER_CRITICAL();
                         conveyor_belt.work_mode = CONVEYOR_BELT_STATUS_STOP;
                         OS_EXIT_CRITICAL();
@@ -222,18 +243,35 @@ void conveyor_belt_task(void *pdata)
                         break;
 
                     case 1:     //
-                        reverse_conveyor_belt();
+                        //reverse_conveyor_belt();
                         if(switch_state == 0)
                         {
-                            unload_state = 2;
+                            unload_state = 3;
                             unload_stop_cnt = UNLOAD_STOP_CNT;
+                        }
+                        else
+                        {
+                            unload_state = 2;
                         }
                         break;
 
                     case 2:
+                        reverse_conveyor_belt();
+                        unload_state = 3;
+                        break;
+
+                    case 3:
+                        if(switch_state == 0)
+                        {
+                            unload_state = 4;
+                            unload_stop_cnt = UNLOAD_STOP_CNT;
+                        }
+                        break;
+
+                    case 4:
                         if(switch_state > 0)
                         {
-                            unload_state = 1;
+                            //unload_state = 1;
                         }
                         if(unload_stop_cnt > 0)
                         {
