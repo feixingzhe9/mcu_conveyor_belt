@@ -14,17 +14,14 @@ sys_status_t *sys_status = &sys_status_ram;
 
 const platform_gpio_t platform_gpio_pins[] =
 {
+    [PLATFORM_GPIO_SYS_LED]                     = { GPIOB,  GPIO_Pin_3},
 
-    [PLATFORM_GPIO_SYS_LED]                     = { GPIOC,  GPIO_Pin_9 },
-
-    //[PLATFORM_GPIO_PHO_SWITCH_1]                = {GPIOC, GPIO_Pin_10},
-    [PLATFORM_GPIO_PHO_SWITCH_3]                = {GPIOC, GPIO_Pin_10},
-    [PLATFORM_GPIO_PHO_SWITCH_2]                = {GPIOB, GPIO_Pin_10},
-    //[PLATFORM_GPIO_PHO_SWITCH_3]                = {GPIOC, GPIO_Pin_11},
-    [PLATFORM_GPIO_PHO_SWITCH_1]                = {GPIOC, GPIO_Pin_11},
-    [PLATFORM_GPIO_MOTOR_REVERSE_FORWARD]       = {GPIOF, GPIO_Pin_13},
-    [PLATFORM_GPIO_MOTOR_START_STOP]            = {GPIOG, GPIO_Pin_1},
-    [PLATFORM_GPIO_LOCK_CTRL]                   = {GPIOF, GPIO_Pin_4},
+    [PLATFORM_GPIO_PHO_SWITCH_3]                = {GPIOB, GPIO_Pin_4},
+    [PLATFORM_GPIO_PHO_SWITCH_2]                = {GPIOB, GPIO_Pin_5},
+    [PLATFORM_GPIO_PHO_SWITCH_1]                = {GPIOB, GPIO_Pin_6},
+    [PLATFORM_GPIO_MOTOR_DIR]                   = {GPIOA, GPIO_Pin_6},
+    [PLATFORM_GPIO_MOTOR_EN]                    = {GPIOA, GPIO_Pin_5},
+    [PLATFORM_GPIO_LOCK_CTRL]                   = {GPIOB, GPIO_Pin_7},
 };
 
 
@@ -40,170 +37,102 @@ void mcu_restart(void)
 }
 
 
-static void input_gpio_init(void)
-{
-    GPIO_InitTypeDef  GPIO_InitStructure;
-
-    RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOD, ENABLE);
-    GPIO_InitStructure.GPIO_Pin = GPIO_Pin_11;
-    GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IPD;
-    GPIO_Init(GPIOD, &GPIO_InitStructure);
-}
-
-static void output_gpio_init(void)
-{
-    GPIO_InitTypeDef  GPIO_InitStructure;
-
-    /*GPIO_E*/
-    RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOE, ENABLE);
-    GPIO_InitStructure.GPIO_Pin = GPIO_Pin_9;
-    GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;
-    GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
-    GPIO_Init(GPIOE, &GPIO_InitStructure);
-
-    /*GPIO_G*/
-    RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOG, ENABLE);
-    GPIO_InitStructure.GPIO_Pin = GPIO_Pin_5;
-    GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;
-    GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
-    GPIO_Init(GPIOG, &GPIO_InitStructure);
-}
-
-static void init_reset_gpio(void)
-{
-    GPIO_ResetBits(GPIOE, GPIO_Pin_9);
-    GPIO_ResetBits(GPIOG, GPIO_Pin_5);
-}
-
-static void init_set_gpio(void)
-{
-    GPIO_SetBits(GPIOD, GPIO_Pin_10);
-}
-
 static void pho_switch_init(void)
 {
     GPIO_InitTypeDef  GPIO_InitStructure;
-    /*GPIO_C*/
-    RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOC, ENABLE);
-    GPIO_InitStructure.GPIO_Pin = GPIO_Pin_10 | GPIO_Pin_11;
-    GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IPU;
-
-    GPIO_Init(GPIOC, &GPIO_InitStructure);
-
+    /*GPIO_B*/
     RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOB, ENABLE);
-    GPIO_InitStructure.GPIO_Pin = GPIO_Pin_10;
+    GPIO_InitStructure.GPIO_Pin = GPIO_Pin_6 | GPIO_Pin_5 | GPIO_Pin_4;
+    GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN_FLOATING;
 
     GPIO_Init(GPIOB, &GPIO_InitStructure);
-
 }
 
 static void motor_ctrl_gpio_init(void)
 {
     GPIO_InitTypeDef  GPIO_InitStructure;
 
-    /*GPIO_F*/
-    RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOF, ENABLE);
-    GPIO_InitStructure.GPIO_Pin = GPIO_Pin_13;
+    /*GPIO_A*/
+    GPIO_ResetBits(GPIOA, GPIO_Pin_5);
+    RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOA, ENABLE);
+    GPIO_InitStructure.GPIO_Pin = GPIO_Pin_5;
     GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;
     GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
-    GPIO_Init(GPIOF, &GPIO_InitStructure);
+    GPIO_Init(GPIOA, &GPIO_InitStructure);
 
-    /*GPIO_G*/
-    GPIO_ResetBits(GPIOG, GPIO_Pin_1);
-    RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOG, ENABLE);
-    GPIO_InitStructure.GPIO_Pin = GPIO_Pin_1;
-    GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;
-    GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
-    GPIO_Init(GPIOG, &GPIO_InitStructure);
-
-    GPIO_ResetBits(GPIOG, GPIO_Pin_1);
+    GPIO_ResetBits(GPIOA, GPIO_Pin_5);
 }
 
-static void module_12_v_init(void)
+
+static void motor_dir_gpio_init(void)
 {
-    GPIO_InitTypeDef  GPIO_InitStructure;
+     GPIO_InitTypeDef  GPIO_InitStructure;
 
-    /*GPIO_E*/
-    RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOE, ENABLE);
-    GPIO_InitStructure.GPIO_Pin = GPIO_Pin_8;
+    /*GPIO_A*/
+    RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOA, ENABLE);
+    GPIO_InitStructure.GPIO_Pin = GPIO_Pin_6;
     GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;
     GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
-    GPIO_Init(GPIOE, &GPIO_InitStructure);
+    GPIO_Init(GPIOA, &GPIO_InitStructure);
 
-    GPIO_ResetBits(GPIOE, GPIO_Pin_8);
-
+    GPIO_ResetBits(GPIOA, GPIO_Pin_6);
 }
+
 static void lock_gpio_init(void)
 {
     GPIO_InitTypeDef  GPIO_InitStructure;
 
-    module_12_v_init();
-    /*GPIO_F*/
-    RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOF, ENABLE);
-    GPIO_InitStructure.GPIO_Pin = GPIO_Pin_4;
+    /*GPIO_B*/
+    RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOB, ENABLE);
+    GPIO_InitStructure.GPIO_Pin = GPIO_Pin_7;
     GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;
     GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
-    GPIO_Init(GPIOF, &GPIO_InitStructure);
+    GPIO_Init(GPIOB, &GPIO_InitStructure);
 
-    GPIO_SetBits(GPIOF, GPIO_Pin_4);
-
+    GPIO_SetBits(GPIOB, GPIO_Pin_7);
 }
 
 void lock_ctrl_lock(void)
 {
-    GPIO_ResetBits(GPIOF, GPIO_Pin_4);
+    GPIO_ResetBits(platform_gpio_pins[PLATFORM_GPIO_LOCK_CTRL].GPIOx, platform_gpio_pins[PLATFORM_GPIO_LOCK_CTRL].GPIO_Pin);
 }
 
 void lock_ctrl_unlock(void)
 {
-    GPIO_SetBits(GPIOF, GPIO_Pin_4);
+    GPIO_SetBits(platform_gpio_pins[PLATFORM_GPIO_LOCK_CTRL].GPIOx, platform_gpio_pins[PLATFORM_GPIO_LOCK_CTRL].GPIO_Pin);
 }
 
 static void platform_gpio_init(void)
 {
-    output_gpio_init();
-    init_set_gpio();
-    init_reset_gpio();
-
-    input_gpio_init();
-    //charge_gpio_init();
+    motor_dir_gpio_init();
     pho_switch_init();
     motor_ctrl_gpio_init();
     lock_gpio_init();
-
 }
-
-
-uint8_t get_switch_state(void)
-{
-    return GPIO_ReadInputDataBit(GPIOD, GPIO_Pin_11);
-}
-
 
 uint8_t set_conveyor_start(void)
 {
-    GPIO_SetBits(GPIOG, GPIO_Pin_1);
+    GPIO_SetBits(platform_gpio_pins[PLATFORM_GPIO_MOTOR_DIR].GPIOx, platform_gpio_pins[PLATFORM_GPIO_MOTOR_DIR].GPIO_Pin);
     return 0;
 }
 
 uint8_t set_conveyor_stop(void)
 {
-    GPIO_ResetBits(GPIOG, GPIO_Pin_1);
+    GPIO_ResetBits(platform_gpio_pins[PLATFORM_GPIO_MOTOR_DIR].GPIOx, platform_gpio_pins[PLATFORM_GPIO_MOTOR_DIR].GPIO_Pin);
     return 0;
 }
 
 uint8_t forward_conveyor_belt(void)
 {
     set_conveyor_start();
-    //GPIO_ResetBits(GPIOF, GPIO_Pin_13);
-    GPIO_SetBits(GPIOF, GPIO_Pin_13);
+    GPIO_SetBits(platform_gpio_pins[PLATFORM_GPIO_MOTOR_DIR].GPIOx, platform_gpio_pins[PLATFORM_GPIO_MOTOR_DIR].GPIO_Pin);
     return 0;
 }
 
 uint8_t reverse_conveyor_belt(void)
 {
     set_conveyor_start();
-    GPIO_ResetBits(GPIOF, GPIO_Pin_13);
+    GPIO_ResetBits(platform_gpio_pins[PLATFORM_GPIO_MOTOR_DIR].GPIOx, platform_gpio_pins[PLATFORM_GPIO_MOTOR_DIR].GPIO_Pin);
     return 0;
 }
 
@@ -215,7 +144,7 @@ uint8_t stop_conveyor_belt(void)
 
 uint8_t get_pho_switch_1_state(void)
 {
-    if(GPIO_ReadInputDataBit(GPIOC, GPIO_Pin_11) == 1)
+    if(GPIO_ReadInputDataBit(platform_gpio_pins[PLATFORM_GPIO_PHO_SWITCH_1].GPIOx, platform_gpio_pins[PLATFORM_GPIO_PHO_SWITCH_1].GPIO_Pin) == 1)
     {
         return 0;
     }
@@ -227,7 +156,7 @@ uint8_t get_pho_switch_1_state(void)
 
 uint8_t get_pho_switch_2_state(void)
 {
-    if(GPIO_ReadInputDataBit(GPIOB, GPIO_Pin_10) == 1)
+    if(GPIO_ReadInputDataBit(platform_gpio_pins[PLATFORM_GPIO_PHO_SWITCH_2].GPIOx, platform_gpio_pins[PLATFORM_GPIO_PHO_SWITCH_2].GPIO_Pin) == 1)
     {
         return 0;
     }
@@ -239,7 +168,7 @@ uint8_t get_pho_switch_2_state(void)
 
 uint8_t get_pho_switch_3_state(void)
 {
-    if(GPIO_ReadInputDataBit(GPIOC, GPIO_Pin_10) == 1)
+    if(GPIO_ReadInputDataBit(platform_gpio_pins[PLATFORM_GPIO_PHO_SWITCH_3].GPIOx, platform_gpio_pins[PLATFORM_GPIO_PHO_SWITCH_3].GPIO_Pin) == 1)
     {
         return 0;
     }
@@ -261,4 +190,3 @@ void user_param_init(void)
 {
 
 }
-

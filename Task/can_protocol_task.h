@@ -3,8 +3,8 @@
 #include "stm32f10x.h"
 #include "ucos_ii.h"
 #include "can_fifo.h"
-#define CAN_PROTOCOL_TASK_STK_SIZE  256
-#define CAN_SEND_TASK_STK_SIZE      256
+#define CAN_PROTOCOL_TASK_STK_SIZE  128
+#define CAN_SEND_TASK_STK_SIZE      128
 extern OS_STK can_protocol_task_stk[CAN_PROTOCOL_TASK_STK_SIZE];
 extern OS_STK can_send_task_stk[CAN_SEND_TASK_STK_SIZE];
 void can_protocol_task(void *pdata);
@@ -65,7 +65,7 @@ typedef uint8_t (*get_one_free_buf_fn)(void);
 typedef uint8_t (*get_the_buf_by_id_fn)(uint32_t);
 typedef void (*free_buf_fn)(uint8_t);
 
-#define CAN_LONG_BUF_NUM    2   // value can not be 0 ! !
+#define CAN_LONG_BUF_NUM    1   // value can not be 0 ! !
 typedef struct
 {
     can_rcv_buf_t can_rcv_buf[CAN_LONG_BUF_NUM];
@@ -85,7 +85,7 @@ typedef struct
 #define CAN_RCV_BUF_QUEUE_NUM       CAN_RCV_BUF_SIZE
 
 
-#define CAN_UPLOAD_ACK_SIZE         10
+#define CAN_UPLOAD_ACK_SIZE         5
 #define CAN_UPLOAD_ACK_QUEUE_NUM    CAN_UPLOAD_ACK_SIZE
 
 #define CAN_BUF_INSIDE_DATA_SIZE    64
