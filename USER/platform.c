@@ -7,7 +7,7 @@
 #include "led.h"
 #include "can.h"
 #include "sys.h"
-
+#include "delay.h"
 
 sys_status_t sys_status_ram = {0};
 sys_status_t *sys_status = &sys_status_ram;
@@ -21,6 +21,7 @@ const platform_gpio_t platform_gpio_pins[] =
     [PLATFORM_GPIO_PHO_SWITCH_1]                = {GPIOB, GPIO_Pin_6},
     [PLATFORM_GPIO_MOTOR_DIR]                   = {GPIOA, GPIO_Pin_6},
     [PLATFORM_GPIO_MOTOR_EN]                    = {GPIOA, GPIO_Pin_5},
+    [PLATFORM_GPIO_MOTOR_PWR_EN]                = {GPIOA, GPIO_Pin_6},
     [PLATFORM_GPIO_LOCK_CTRL]                   = {GPIOB, GPIO_Pin_7},
 };
 
@@ -64,6 +65,22 @@ static void motor_ctrl_gpio_init(void)
 }
 
 
+static void motor_power_ctrl_gpio_init(void)
+{
+    GPIO_InitTypeDef  GPIO_InitStructure;
+
+    /*GPIO_A*/
+    GPIO_ResetBits(GPIOA, GPIO_Pin_4);
+    RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOA, ENABLE);
+    GPIO_InitStructure.GPIO_Pin = GPIO_Pin_4;
+    GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;
+    GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+    GPIO_Init(GPIOA, &GPIO_InitStructure);
+
+    GPIO_ResetBits(GPIOA, GPIO_Pin_4);
+}
+
+
 static void motor_dir_gpio_init(void)
 {
      GPIO_InitTypeDef  GPIO_InitStructure;
@@ -92,6 +109,16 @@ static void lock_gpio_init(void)
     GPIO_SetBits(GPIOB, GPIO_Pin_7);
 }
 
+void motor_pwr_on(void)
+{
+    GPIO_SetBits(platform_gpio_pins[PLATFORM_GPIO_MOTOR_PWR_EN].GPIOx, platform_gpio_pins[PLATFORM_GPIO_MOTOR_PWR_EN].GPIO_Pin);
+}
+
+void motor_pwr_off(void)
+{
+    GPIO_ResetBits(platform_gpio_pins[PLATFORM_GPIO_MOTOR_PWR_EN].GPIOx, platform_gpio_pins[PLATFORM_GPIO_MOTOR_PWR_EN].GPIO_Pin);
+}
+
 void lock_ctrl_lock(void)
 {
     GPIO_ResetBits(platform_gpio_pins[PLATFORM_GPIO_LOCK_CTRL].GPIOx, platform_gpio_pins[PLATFORM_GPIO_LOCK_CTRL].GPIO_Pin);
@@ -106,6 +133,7 @@ static void platform_gpio_init(void)
 {
     motor_dir_gpio_init();
     pho_switch_init();
+    motor_power_ctrl_gpio_init();
     motor_ctrl_gpio_init();
     lock_gpio_init();
 }
@@ -124,6 +152,8 @@ uint8_t set_conveyor_stop(void)
 
 uint8_t forward_conveyor_belt(void)
 {
+    motor_pwr_on();
+    delay_ms(100);
     set_conveyor_start();
     GPIO_SetBits(platform_gpio_pins[PLATFORM_GPIO_MOTOR_DIR].GPIOx, platform_gpio_pins[PLATFORM_GPIO_MOTOR_DIR].GPIO_Pin);
     return 0;
@@ -131,6 +161,8 @@ uint8_t forward_conveyor_belt(void)
 
 uint8_t reverse_conveyor_belt(void)
 {
+    motor_pwr_on();
+    delay_ms(100);
     set_conveyor_start();
     GPIO_ResetBits(platform_gpio_pins[PLATFORM_GPIO_MOTOR_DIR].GPIOx, platform_gpio_pins[PLATFORM_GPIO_MOTOR_DIR].GPIO_Pin);
     return 0;
@@ -138,6 +170,7 @@ uint8_t reverse_conveyor_belt(void)
 
 uint8_t stop_conveyor_belt(void)
 {
+    motor_pwr_off();
     set_conveyor_stop();
     return 1;
 }
