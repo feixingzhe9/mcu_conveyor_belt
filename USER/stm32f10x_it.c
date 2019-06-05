@@ -24,7 +24,6 @@
 /* Includes ------------------------------------------------------------------*/
 #include "stm32f10x_it.h"
 #include "includes.h"
-#include "usart.h"
 
 
 void NMI_Handler(void)
@@ -161,20 +160,21 @@ void DMA1_Channel6_IRQHandler(void)
 }
 
 
-
+#include "usart.h"
 /*    USART2 IDLE interrupt    */
 void USART2_IRQHandler(void)
 {
     volatile unsigned char temper=0;
-
+    uint16_t rcv_len = 0;
     OSIntEnter();
     if (USART_GetITStatus(USART2, USART_IT_IDLE) != RESET)
     {
         temper = USART2->SR;
-        temper = USART2->DR;    //ÇåUSART_IT_IDLE
+        temper = USART2->DR;    //Ã‡Ã¥USART_IT_IDLE
 
         DMA_Cmd(DMA1_Channel6, DISABLE);
-
+        rcv_len = RFID_UART_RCV_SIZE - DMA_GetCurrDataCounter(DMA1_Channel6);
+        DMA_SetCurrDataCounter(DMA1_Channel6, RFID_UART_RCV_SIZE);
         DMA_Cmd(DMA1_Channel6,ENABLE);
     }
     OSIntExit();
