@@ -49,7 +49,7 @@ void pho_switch_status_task(void *pdata)
     uint8_t pre_state = 0;
     uint8_t cnt = 0;
     uint8_t i = 0;
-    delay_ms(1000);
+    delay_ms(5000);
     while(1)
     {
         state_buf[cnt] = get_pho_switch_state();
@@ -134,7 +134,6 @@ void conveyor_belt_task(void *pdata)
     uint8_t unload_state = 0;
     uint8_t switch_state = 0;
     delay_ms(5000);
-    set_conveyor_belt_unload();
     while(1)
     {
 
