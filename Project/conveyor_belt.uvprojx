@@ -424,6 +424,11 @@
               <FileType>1</FileType>
               <FilePath>..\Task\conveyor_belt_task.c</FilePath>
             </File>
+            <File>
+              <FileName>sanwei_rfid_task.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Task\sanwei_rfid_task.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
@@ -448,6 +453,11 @@
               <FileName>photoelectric_switch.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\Modules\photoelectric_switch.c</FilePath>
+            </File>
+            <File>
+              <FileName>sanwei_rfid.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Modules\sanwei_rfid.c</FilePath>
             </File>
           </Files>
         </Group>

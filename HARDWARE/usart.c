@@ -37,7 +37,7 @@ int fputc(int ch, FILE *f)
 
 
 uint8_t rfid_uart_send_buf[RFID_UART_SEND_SIZE];
-uint8_t rfid_uart_rcv_buf[RFID_UART_RCV_SIZE];
+uint8_t sw_rfid_uart_rcv_buf[RFID_UART_RCV_SIZE];
 void uart2_dma_init(u32 bound)
 {
     USART_InitTypeDef USART_InitStructure;
@@ -107,7 +107,7 @@ void uart2_dma_init(u32 bound)
 
     //USART2 RX
     DMA_InitStructure.DMA_PeripheralBaseAddr = (uint32_t)(&USART2->DR);
-    DMA_InitStructure.DMA_MemoryBaseAddr = (uint32_t)&rfid_uart_rcv_buf[0];
+    DMA_InitStructure.DMA_MemoryBaseAddr = (uint32_t)&sw_rfid_uart_rcv_buf[0];
     DMA_InitStructure.DMA_DIR = DMA_DIR_PeripheralSRC;
     DMA_InitStructure.DMA_BufferSize = RFID_UART_RCV_SIZE;
     DMA_InitStructure.DMA_PeripheralInc = DMA_PeripheralInc_Disable;

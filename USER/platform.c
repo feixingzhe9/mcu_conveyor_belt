@@ -8,6 +8,7 @@
 #include "can.h"
 #include "sys.h"
 #include "delay.h"
+#include "sanwei_rfid.h"
 
 sys_status_t sys_status_ram = {0};
 sys_status_t *sys_status = &sys_status_ram;
@@ -220,6 +221,9 @@ void hardware_init(void)
     platform_gpio_init();
     led_init();
     init_can1();
+    sanwei_rfid_init();
+    //test code
+    //test_sanwei_rfid_send_data();
 }
 
 void user_param_init(void)

@@ -6,6 +6,7 @@
 #include "led_task.h"
 #include "can_protocol_task.h"
 #include "conveyor_belt_task.h"
+#include "sanwei_rfid_task.h"
 
 typedef enum
 {
@@ -14,6 +15,7 @@ typedef enum
     PHO_SWITCH_STATUS_PRIO,
     CONVEYOR_BELT_PRIO,
     PHO_STATE_UPLOAD_TASK_PRIO,
+    SANWEI_RFID_TASK_PRIO,
     INDICATOR_LED_TASK_PRIO
 }task_prio_e;
 

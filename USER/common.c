@@ -13,6 +13,7 @@ static void task_create(void)
     OSTaskCreate(conveyor_belt_task,                (void *)0,  (OS_STK*)&conveyor_belt_task_stk[CONVEYOR_BELT_TASK_STK_SIZE - 1],                  CONVEYOR_BELT_PRIO);
     OSTaskCreate(indicator_led_task,                (void *)0,  (OS_STK*)&indicator_led_task_stk[INDICATOR_LED_STK_SIZE - 1],                       INDICATOR_LED_TASK_PRIO);
     OSTaskCreate(upload_pho_state_upload_task,      (void *)0,  (OS_STK*)&pho_state_upload_task_stk[PHO_STATE_UPLOAD_TASK_STK_SIZE - 1],            PHO_STATE_UPLOAD_TASK_PRIO);
+    OSTaskCreate(sanwei_rfid_task,                  (void *)0,  (OS_STK*)&sanwei_rfid_task_stk[SANWEI_RFID_TASK_STK_SIZE - 1],                      SANWEI_RFID_TASK_PRIO);
 }
 
 static void sem_create(void)
@@ -62,6 +63,16 @@ static int mem_create(void)
         */
 //        return -1;
     }
+
+    sw_rfid_uart_rcv_mem_handle = OSMemCreate((void *)&sw_rfid_uart_rcv_mem[0][0], sizeof(sw_rfid_uart_rcv_mem) / sizeof(sw_rfid_uart_rcv_mem[0]), sizeof(sw_rfid_uart_rcv_buf_t), &err);
+    if(sw_rfid_uart_rcv_mem_handle == 0)
+    {
+        /*
+        todo: err process
+        */
+        return -1;
+    }
+
     return 0;
 }
 
@@ -107,7 +118,12 @@ static void os_user_config(void)
 
 static void user_init_depend_on_os_config(void)
 {
-
+    if(sw_rfid_uart_rcv_buf_head_init() < 0)
+    {
+        /*
+        todo: err process
+        */
+    }
 }
 
 void user_init(void)

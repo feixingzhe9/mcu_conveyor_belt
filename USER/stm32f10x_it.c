@@ -161,6 +161,7 @@ void DMA1_Channel6_IRQHandler(void)
 
 
 #include "usart.h"
+#include "sanwei_rfid_task.h"
 /*    USART2 IDLE interrupt    */
 void USART2_IRQHandler(void)
 {
@@ -175,6 +176,7 @@ void USART2_IRQHandler(void)
         DMA_Cmd(DMA1_Channel6, DISABLE);
         rcv_len = RFID_UART_RCV_SIZE - DMA_GetCurrDataCounter(DMA1_Channel6);
         DMA_SetCurrDataCounter(DMA1_Channel6, RFID_UART_RCV_SIZE);
+        put_sw_rfid_uart_rcv_buf(sw_rfid_uart_rcv_buf, rcv_len);
         DMA_Cmd(DMA1_Channel6,ENABLE);
     }
     OSIntExit();
