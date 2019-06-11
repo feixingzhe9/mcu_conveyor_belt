@@ -5,19 +5,145 @@
 
 #include "sanwei_rfid.h"
 #include "usart.h"
+#include <string.h>
 
 //static uint8_t pre_send_data_buf[PRE_SEND_DATA_LEN] = {0x02,0x04,0x05,0x02,0x03,0x10,0x03};
 static uint8_t pre_send_data_buf[PRE_SEND_DATA_LEN] = {0};
 static uint8_t send_data_buf[SEND_DATA_LEN] = {0};
+
+
+#define PROTOCOL_HEAD           0x02
+#define PROTOCOL_TAIL           0x03
+#define INSERT_ESCAPE           0x10
+
+
+OS_MEM *sw_rfid_uart_rcv_mem_handle;
 
 void sanwei_rfid_init(void)
 {
     uart2_dma_init(19200);
 }
 
-#define PROTOCOL_HEAD           0x02
-#define PROTOCOL_TAIL           0x03
-#define INSERT_ESCAPE           0x10
+static sw_rfid_uart_rcv_buf_t *rcv_buf_head = NULL;
+
+int sw_rfid_uart_rcv_buf_head_init(void)
+{
+    uint8_t err = 0;
+    rcv_buf_head = (sw_rfid_uart_rcv_buf_t *)OSMemGet(sw_rfid_uart_rcv_mem_handle, &err);
+    if(rcv_buf_head != NULL)
+    {
+        rcv_buf_head->next = NULL;
+        rcv_buf_head->rcv_len = 0;
+        memset(rcv_buf_head->rcv_buf, 0, SW_RFID_UART_RCV_SIZE);
+    }
+    else
+    {
+        /*
+        todo: err process
+        */
+        return -1;
+    }
+    return 0;
+}
+
+static uint16_t get_used_buf_size(void)
+{
+    uint16_t cnt = 0;
+    sw_rfid_uart_rcv_buf_t *ptr = NULL;
+    ptr = rcv_buf_head;
+    while(ptr->next != NULL)
+    {
+        ptr = ptr->next;
+        cnt++;
+    }
+    return cnt;
+}
+
+int put_sw_rfid_uart_rcv_buf(uint8_t *buf, uint16_t len)
+{
+    sw_rfid_uart_rcv_buf_t *p = NULL;
+    sw_rfid_uart_rcv_buf_t *node = NULL;
+    uint8_t err = 0;
+    if(get_used_buf_size() < SW_RFID_UART_RCV_BUF_NUM)
+    {
+        node = (sw_rfid_uart_rcv_buf_t *)OSMemGet(sw_rfid_uart_rcv_mem_handle, &err);
+        if(node == NULL)
+        {
+            /*
+            todo: err process
+            */
+            return -1;
+        }
+        node->next = NULL;
+        node->rcv_len = len;
+        memcpy(node->rcv_buf, buf, len);
+    }
+    else
+    {
+        /*
+        todo: err process
+        */
+        return -1;
+    }
+    p = rcv_buf_head;
+    while(p->next != NULL)  //链表头不保存数据
+    {
+        p = p->next;
+    }
+    p->next = node;
+    return 0;
+}
+
+int free_one_rcv_buf(sw_rfid_uart_rcv_buf_t *buf)
+{
+    sw_rfid_uart_rcv_buf_t *p = NULL;
+    sw_rfid_uart_rcv_buf_t *pre_p = NULL;
+    p = rcv_buf_head;
+    pre_p = rcv_buf_head;
+    do
+    {
+        if(p != buf)
+        {
+            pre_p = p;
+            p = p->next;
+        }
+        else
+        {
+            break;
+        }
+    }
+    while(p != NULL);
+
+    if(p == NULL)
+    {
+        return -1;  //can not find such buf
+    }
+
+    OSMemPut(sw_rfid_uart_rcv_mem_handle, p);
+    if(p->next == NULL)
+    {
+        pre_p->next = NULL;
+    }
+    else
+    {
+        pre_p->next = p->next;
+    }
+    return 0;
+}
+
+sw_rfid_uart_rcv_buf_t *get_latest_buf(void)
+{
+    sw_rfid_uart_rcv_buf_t *p = NULL;
+    sw_rfid_uart_rcv_buf_t *node = NULL;
+    p = rcv_buf_head;
+    if(p->next != NULL)
+    {
+        node = p->next;
+    }
+    return node;
+}
+
+
 
 static bool is_escape(uint8_t c)
 {
@@ -80,6 +206,8 @@ void test_sanwei_rfid_send_data(void)
 }
 
 
+
+/******************** uart send protocol *****************/
 uint8_t set_rfid_work_mode(uint8_t mode)    //02 00 00 04 3a 41 7f 03           ack: 02 00 00 10 03 3A 00 3D 03 
 {
     uint8_t check_value = 0;
@@ -105,7 +233,7 @@ uint8_t set_rfid_work_mode(uint8_t mode)    //02 00 00 04 3a 41 7f 03           
 }
 
 
-uint8_t search_card(uint8_t model)      //02 00 00 04 46 52 9c 03       ack:02 00 00 05 46 00 04 00 4F 03 
+uint8_t search_card(void)      //02 00 00 04 46 52 9c 03       ack:02 00 00 05 46 00 04 00 4F 03 
 {
     uint8_t check_value = 0;
     uint8_t len = 0;
@@ -115,7 +243,7 @@ uint8_t search_card(uint8_t model)      //02 00 00 04 46 52 9c 03       ack:02 0
     pre_send_data_buf[3] = 4;       //length:从长度字到校验字的字节数
     pre_send_data_buf[4] = 0x46;
     /* data */
-    pre_send_data_buf[5] = model;
+    pre_send_data_buf[5] = 0x52;
 
     check_value = cal_check_value(&pre_send_data_buf[1], 5);    //从模块地址到数据域结束
     pre_send_data_buf[6] = check_value;         //校验字
@@ -236,4 +364,52 @@ uint8_t read_rfid(uint8_t absolute_block_num)   // e.g: 02 00 00 04 4b 34 83 03 
     }
     return 0;
 }
+
+
+
+/******************** uart receive protocol *****************/
+
+static bool is_protocol_cmd(uint8_t cmd)
+{
+    return TRUE;
+}
+
+static bool is_frame_valid(uint8_t *data, uint8_t len)
+{
+    if((data != NULL) && (len > 8))
+    {
+        if((data[0] == PROTOCOL_HEAD) && (data[len - 1] == PROTOCOL_TAIL))
+        {
+            return TRUE;
+        }
+    }
+    return FALSE;
+}
+
+uint8_t sanwei_rfid_rcv_proccess(uint8_t *data, uint8_t len)
+{
+    uint16_t module_addr = 0;
+    uint8_t cmd = 0;
+    uint8_t result = 0xff;
+    if(is_frame_valid(data, len))
+    {
+        if(is_protocol_cmd(cmd))
+        {
+            module_addr = data[1] | (data[2] << 8);
+            cmd = data[4];
+            result = data[5];
+            switch(cmd)
+            {
+                case SW_RFID_PROTOCOL_CMD_SEARCH_CARD:
+                    break;
+                default: break;
+            }
+        }
+    }
+    return FALSE;
+}
+
+
+
+
 

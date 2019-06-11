@@ -14,6 +14,7 @@ static void task_create(void)
     OSTaskCreate(indicator_led_task,                (void *)0,  (OS_STK*)&indicator_led_task_stk[INDICATOR_LED_STK_SIZE - 1],                       INDICATOR_LED_TASK_PRIO);
     OSTaskCreate(upload_pho_state_upload_task,      (void *)0,  (OS_STK*)&pho_state_upload_task_stk[PHO_STATE_UPLOAD_TASK_STK_SIZE - 1],            PHO_STATE_UPLOAD_TASK_PRIO);
     OSTaskCreate(sanwei_rfid_main_task,             (void *)0,  (OS_STK*)&sanwei_rfid_main_task_stk[SANWEI_RFID_MAIN_TASK_STK_SIZE - 1],            SANWEI_RFID_MAIN_TASK_PRIO);
+    OSTaskCreate(sanwei_rfid_rcv_task,              (void *)0,  (OS_STK*)&sanwei_rfid_rcv_task_stk[SANWEI_RFID_RCV_TASK_STK_SIZE - 1],              SANWEI_RFID_RCV_TASK_PRIO);
 }
 
 static void sem_create(void)
