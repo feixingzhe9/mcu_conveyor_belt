@@ -7,15 +7,9 @@
 #define PRE_SEND_DATA_LEN   32
 #define SEND_DATA_LEN       32
 
-#define SW_RFID_UART_RCV_SIZE    32
+#define SW_RFID_UART_RCV_SIZE       32
 
-#define SW_RFID_UART_RCV_BUF_NUM  10
-//typedef struct fp_rcv_buf_t
-//{
-//    uint8_t rcv_buf[SW_RFID_UART_RCV_SIZE];
-//    uint16_t rcv_len;
-//    struct fp_rcv_buf_t *next;
-//}fp_rcv_buf_t;
+#define SW_RFID_UART_RCV_BUF_NUM    5
 
 typedef struct sw_rfid_uart_rcv_buf_t
 {

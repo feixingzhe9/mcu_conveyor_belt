@@ -5,7 +5,7 @@
 #include "sanwei_rfid_task.h"
 #include "delay.h"
 
-OS_STK sanwei_rfid_task_stk[SANWEI_RFID_TASK_STK_SIZE];
+OS_STK sanwei_rfid_main_task_stk[SANWEI_RFID_MAIN_TASK_STK_SIZE];
 
 
 
@@ -134,7 +134,7 @@ sw_rfid_uart_rcv_buf_t *get_latest_buf(void)
 }
 
 
-void sanwei_rfid_task(void *pdata)
+void sanwei_rfid_main_task(void *pdata)
 {
     delay_ms(3000);
     read_rfid(52);
