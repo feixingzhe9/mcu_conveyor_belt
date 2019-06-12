@@ -48,6 +48,7 @@ void can_send_task(void *pdata);
 #define CAN_SOURCE_ID_GET_PHO_ELEC_SWITCH_STATE     0xa1
 
 #define CAN_SOURCE_ID_LOCK_CTRL                     0xa2
+#define CAN_SOURCE_ID_GET_SANWEI_RFID_ID            0xa3
 
 
 #define CAN_ONE_FRAME_DATA_LENTH    7

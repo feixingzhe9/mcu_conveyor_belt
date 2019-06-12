@@ -16,6 +16,7 @@
 #include "can_fifo.h"
 #include "conveyor_belt.h"
 #include "photoelectric_switch.h"
+#include "sanwei_rfid.h"
 
 //#define CanProtocolLog(format, ...)  custom_log("can protocol", format, ##__VA_ARGS__)
 
@@ -344,6 +345,27 @@ uint16_t CmdProcessing(can_id_union *id, uint8_t *data_in, uint16_t data_len, ui
                     }
                     return 0;
                 }
+
+                case CAN_SOURCE_ID_GET_SANWEI_RFID_ID:
+                    if(data_len == 1)
+                    {
+                        uint16_t id = 0;
+                        if(get_sw_rfid_id(&id) >= 0)
+                        {
+                            data_out[0] = 1;
+                            data_out[1] = id >> 8;
+                            data_out[2] = id & 0xff;
+                            return 3;
+                        }
+                        else
+                        {
+                            data_out[0] = 0;
+                            data_out[1] = 0;
+                            data_out[2] = 0;
+                            return 3;
+                        }
+                    }
+                    break;
 
                 default :
                     break;

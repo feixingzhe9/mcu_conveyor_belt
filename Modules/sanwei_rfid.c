@@ -484,5 +484,110 @@ uint8_t sanwei_rfid_rcv_proccess(uint8_t *data_tmp, uint8_t len_tmp)
 
 
 
+#define SW_RFID_ACK_TIME_OUT    (5 * OS_TICKS_PER_SEC / 10)
+int get_sw_rfid_id(uint16_t *id)
+{
+    sw_rfid_ack_t *ack = NULL;
+    uint8_t err = 0;
+    uint32_t card_id = 0;
+    
+    search_card();
+    ack = (sw_rfid_ack_t *)OSQPend(sw_rfid_ack_queue_handle, SW_RFID_ACK_TIME_OUT, &err);
+    if(ack)
+    {
+        if((ack->cmd == SW_RFID_PROTOCOL_CMD_SEARCH_CARD) && (ack->result == 0))
+        {
+            OSMemPut(sw_rfid_ack_mem_handle, ack);
+        }
+        else
+        {
+            OSMemPut(sw_rfid_ack_mem_handle, ack);
+            return -1;
+        }
+    }
+    else
+    {
+        return -1;
+    }
+
+    prevent_conflict();
+    ack = (sw_rfid_ack_t *)OSQPend(sw_rfid_ack_queue_handle, SW_RFID_ACK_TIME_OUT, &err);
+    if(ack)
+    {
+        if((ack->cmd == SW_RFID_PROTOCOL_CMD_PREVENT_CONFLICT) && (ack->result == 0))
+        {
+            if(ack->data_len == 4)
+            {
+                card_id = (ack->data[0] << 24) | (ack->data[1] << 16) | (ack->data[2] << 8) | ack->data[3];
+            }
+            OSMemPut(sw_rfid_ack_mem_handle, ack);
+        }
+        else
+        {
+            OSMemPut(sw_rfid_ack_mem_handle, ack);
+            return -1;
+        }
+    }
+    else
+    {
+        return -1;
+    }
+
+    select_card(card_id);
+    ack = (sw_rfid_ack_t *)OSQPend(sw_rfid_ack_queue_handle, SW_RFID_ACK_TIME_OUT, &err);
+    if(ack)
+    {
+        if((ack->cmd == SW_RFID_PROTOCOL_CMD_SELECT_CARD) && (ack->result == 0))
+        {
+            OSMemPut(sw_rfid_ack_mem_handle, ack);
+        }
+        else
+        {
+            OSMemPut(sw_rfid_ack_mem_handle, ack);
+            return -1;
+        }
+    }
+    else
+    {
+        return -1;
+    }
+
+    verify_secret_key();
+    ack = (sw_rfid_ack_t *)OSQPend(sw_rfid_ack_queue_handle, SW_RFID_ACK_TIME_OUT, &err);
+    if(ack)
+    {
+        if((ack->cmd == SW_RFID_PROTOCOL_CMD_VERIFY_SECRET_KEY) && (ack->result == 0))
+        {
+            OSMemPut(sw_rfid_ack_mem_handle, ack);
+        }
+        else
+        {
+            OSMemPut(sw_rfid_ack_mem_handle, ack);
+            return -1;
+        }
+    }
+
+    read_rfid(0x34);
+    ack = (sw_rfid_ack_t *)OSQPend(sw_rfid_ack_queue_handle, SW_RFID_ACK_TIME_OUT, &err);
+    if(ack)
+    {
+        if((ack->cmd == SW_RFID_PROTOCOL_CMD_READ_BLOCK) && (ack->result == 0))
+        {
+            if(ack->data_len == 16)
+            {
+//                memcpy((uint8_t *)id, ack->data, 2);
+                *id = (ack->data[0] << 8) | ack->data[1];
+            }
+            OSMemPut(sw_rfid_ack_mem_handle, ack);
+        }
+        else
+        {
+            OSMemPut(sw_rfid_ack_mem_handle, ack);
+            return -1;
+        }
+    }
+    return 0;
+}
+
 
 

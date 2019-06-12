@@ -40,7 +40,7 @@ void sanwei_rfid_rcv_task(void *pdata)
 #define SW_RFID_ACK_TIME_OUT    (5 * OS_TICKS_PER_SEC / 10)
 void sanwei_rfid_main_task(void *pdata)
 {
-    uint8_t state = STATE_SEARCH_CARD;
+    uint8_t state = STATE_NONE;
     sw_rfid_ack_t *ack = NULL;
     uint8_t err = 0;
     uint32_t card_id = 0;
@@ -50,6 +50,8 @@ void sanwei_rfid_main_task(void *pdata)
     uint8_t write_test_data[16] = {0x12, 0x34, 0x56, 0x78, 0x9a, 0xbc, 0xde, 0xf0, 0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77, 0x88};
     uint8_t ack_ok_flag = FALSE;
     delay_ms(5000);
+//    uint16_t id = 0;
+//    get_sw_rfid_id(&id);
     for(;;)
     {
         switch(state)

@@ -50,6 +50,7 @@ uint8_t write_rfid(uint8_t absolute_block_num, uint8_t *data);
 
 uint8_t sanwei_rfid_rcv_proccess(uint8_t *data, uint8_t len);
 
+int get_sw_rfid_id(uint16_t *id);
 
 int free_one_rcv_buf(sw_rfid_uart_rcv_buf_t *buf);
 sw_rfid_uart_rcv_buf_t *get_latest_buf(void);
