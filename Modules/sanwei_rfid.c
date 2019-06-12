@@ -19,12 +19,14 @@ static uint8_t send_data_buf[SEND_DATA_LEN] = {0};
 
 OS_MEM *sw_rfid_uart_rcv_mem_handle;
 
+OS_MEM *sw_rfid_ack_mem_handle;
+
 void sanwei_rfid_init(void)
 {
     uart2_dma_init(19200);
 }
 
-static sw_rfid_uart_rcv_buf_t *rcv_buf_head = NULL;
+sw_rfid_uart_rcv_buf_t *rcv_buf_head = NULL;
 
 int sw_rfid_uart_rcv_buf_head_init(void)
 {
@@ -292,10 +294,10 @@ uint8_t select_card(uint32_t id)        //02 00 00 07 48 12 3c 56 56 46 03      
     pre_send_data_buf[3] = 4;       //length:从长度字到校验字的字节数
     pre_send_data_buf[4] = 0x48;
     /* data */
-    pre_send_data_buf[5] = 0x12;
-    pre_send_data_buf[6] = 0x3c;
-    pre_send_data_buf[7] = 0x56;
-    pre_send_data_buf[8] = 0x56;
+    pre_send_data_buf[5] = id >> 24;
+    pre_send_data_buf[6] = (id >> 16) & 0xff;
+    pre_send_data_buf[7] = (id >> 8) & 0xff;
+    pre_send_data_buf[8] = id & 0xff;
 
     check_value = cal_check_value(&pre_send_data_buf[1], 8);    //从模块地址到数据域结束
     pre_send_data_buf[9] = check_value;         //校验字
@@ -309,7 +311,7 @@ uint8_t select_card(uint32_t id)        //02 00 00 07 48 12 3c 56 56 46 03      
     return 0;
 }
 
-uint8_t verify_secret_key(uint8_t *key, uint8_t key_len)        //02 00 00 0b 4A 60 34 ff ff ff ff ff ff e3 03          ack:02 00 00 10 03 4A 00 4D 03 
+uint8_t verify_secret_key(void)//固定key为6个0xff        //02 00 00 0b 4A 60 34 ff ff ff ff ff ff e3 03          ack:02 00 00 10 03 4A 00 4D 03 
 {
     uint8_t check_value = 0;
     uint8_t len = 0;
@@ -332,7 +334,7 @@ uint8_t verify_secret_key(uint8_t *key, uint8_t key_len)        //02 00 00 0b 4A
     pre_send_data_buf[13] = check_value;         //校验字
     pre_send_data_buf[14] = PROTOCOL_TAIL;
 
-    len = pre_proc_data(pre_send_data_buf, 11, send_data_buf);
+    len = pre_proc_data(pre_send_data_buf, 15, send_data_buf);
     if(len > 0)
     {
         uart2_send(send_data_buf, len);
@@ -366,43 +368,114 @@ uint8_t read_rfid(uint8_t absolute_block_num)   // e.g: 02 00 00 04 4b 34 83 03 
 }
 
 
+uint8_t write_rfid(uint8_t absolute_block_num, uint8_t *data)   //写入对应块的16个字节
+{
+    uint8_t check_value = 0;
+    uint8_t len = 0;
+    pre_send_data_buf[0] = PROTOCOL_HEAD;
+    pre_send_data_buf[1] = 0;       //模块地址
+    pre_send_data_buf[2] = 0;       //模块地址
+    pre_send_data_buf[3] = 4;       //length:从长度字到校验字的字节数
+    pre_send_data_buf[4] = SW_RFID_PROTOCOL_CMD_WRITE_BLOCK;    //cmd: 读块
+    /* data */
+    pre_send_data_buf[5] = absolute_block_num;  //绝对块号
+
+    for(uint8_t i = 0; i < 16; i++)
+    {
+        pre_send_data_buf[6 + i] = data[i];
+    }
+    check_value = cal_check_value(&pre_send_data_buf[1], 21);    //从模块地址到数据域结束
+    pre_send_data_buf[22] = check_value;         //校验字
+    pre_send_data_buf[23] = PROTOCOL_TAIL;
+
+    len = pre_proc_data(pre_send_data_buf, 24, send_data_buf);
+    if(len > 0)
+    {
+        uart2_send(send_data_buf, len);
+    }
+    return 0;
+}
+
+#define SW_RFID_PROTOCOL_CMD_SELECT_CARD                0x48
+#define SW_RFID_PROTOCOL_CMD_VERIFY_SECRET_KEY          0x4A
+#define SW_RFID_PROTOCOL_CMD_READ_BLOCK                 0x4B
+#define SW_RFID_PROTOCOL_CMD_WRITE_BLOCK                0x4C
 
 /******************** uart receive protocol *****************/
 
 static bool is_protocol_cmd(uint8_t cmd)
 {
-    return TRUE;
-}
-
-static bool is_frame_valid(uint8_t *data, uint8_t len)
-{
-    if((data != NULL) && (len > 8))
+    if((cmd == SW_RFID_PROTOCOL_CMD_SEARCH_CARD) || (cmd == SW_RFID_PROTOCOL_CMD_PREVENT_CONFLICT) || (cmd == SW_RFID_PROTOCOL_CMD_SELECT_CARD) || \
+        (cmd == SW_RFID_PROTOCOL_CMD_VERIFY_SECRET_KEY) || (cmd == SW_RFID_PROTOCOL_CMD_READ_BLOCK) || (cmd == SW_RFID_PROTOCOL_CMD_WRITE_BLOCK))
     {
-        if((data[0] == PROTOCOL_HEAD) && (data[len - 1] == PROTOCOL_TAIL))
-        {
-            return TRUE;
-        }
+        return TRUE;
     }
     return FALSE;
 }
 
-uint8_t sanwei_rfid_rcv_proccess(uint8_t *data, uint8_t len)
+static bool is_frame_valid(uint8_t *data, uint8_t len)
+{
+    if(data == NULL)                                            return FALSE;
+    if(len < 8)                                                 return FALSE;
+    if(data[0] != PROTOCOL_HEAD)                                return FALSE;
+    if(data[len - 1] != PROTOCOL_TAIL)                          return FALSE;
+    if(cal_check_value(&data[1], len - 3) != data[len - 2])     return FALSE;
+
+    return TRUE;
+}
+
+static uint8_t pre_porc_ack_data(uint8_t *in_data, uint8_t in_len, uint8_t *out_data)
+{
+    uint8_t cnt = 1;
+    out_data[0] = in_data[0];
+    for(uint8_t i = 1; i < in_len - 1; i++)
+    {
+        if(in_data[i] != INSERT_ESCAPE)
+        {
+            out_data[cnt++] = in_data[i];
+        }
+        else
+        {
+            i++;
+            out_data[cnt++] = in_data[i];
+        }
+    }
+    cnt++;
+    out_data[cnt - 1] = in_data[in_len - 1];
+    return cnt;
+}
+
+extern OS_EVENT *sw_rfid_ack_queue_handle;
+
+uint8_t sanwei_rfid_rcv_proccess(uint8_t *data_tmp, uint8_t len_tmp)
 {
     uint16_t module_addr = 0;
     uint8_t cmd = 0;
     uint8_t result = 0xff;
+    sw_rfid_ack_t *ack = NULL;
+    uint8_t data[32] = {0};
+    uint8_t len = 0;
+    len = pre_porc_ack_data(data_tmp, len_tmp, data);
     if(is_frame_valid(data, len))
     {
+        module_addr = data[1] | (data[2] << 8);
+        cmd = data[4];
+        result = data[5];
         if(is_protocol_cmd(cmd))
         {
-            module_addr = data[1] | (data[2] << 8);
-            cmd = data[4];
-            result = data[5];
-            switch(cmd)
+            uint8_t err = 0;
+            ack = (sw_rfid_ack_t *)OSMemGet(sw_rfid_ack_mem_handle, &err);
+            if(ack)
             {
-                case SW_RFID_PROTOCOL_CMD_SEARCH_CARD:
-                    break;
-                default: break;
+                ack->cmd = cmd;
+                ack->result = result;
+                ack->module_addr = module_addr;
+                ack->data_len = len - 8;
+                if(ack->data_len > 0)
+                {
+                    memcpy(ack->data, &data[6], ack->data_len);
+                }
+                OSQPost(sw_rfid_ack_queue_handle, (void *)ack);
             }
         }
     }

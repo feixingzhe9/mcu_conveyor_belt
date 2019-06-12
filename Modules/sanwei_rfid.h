@@ -11,6 +11,9 @@
 #define SW_RFID_UART_RCV_SIZE       32
 
 #define SW_RFID_UART_RCV_BUF_NUM    5
+#define SW_RFID_ACK_BUF_NUM         5
+
+#define SW_RFID_ACK_QUEUE_NUM       SW_RFID_ACK_BUF_NUM
 
 
 #define SW_RFID_PROTOCOL_CMD_SEARCH_CARD                0x46
@@ -35,11 +38,15 @@ typedef struct
     uint8_t result;
     uint8_t data[32];
     uint8_t data_len;
-}protocol_ack_t;
+}sw_rfid_ack_t;
 
 void sanwei_rfid_init(void);
 uint8_t search_card(void);
+uint8_t prevent_conflict(void);
+uint8_t select_card(uint32_t id);
+uint8_t verify_secret_key(void);
 uint8_t read_rfid(uint8_t absolute_block_num);
+uint8_t write_rfid(uint8_t absolute_block_num, uint8_t *data);
 
 uint8_t sanwei_rfid_rcv_proccess(uint8_t *data, uint8_t len);
 

@@ -107,7 +107,7 @@ static void lock_gpio_init(void)
     GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
     GPIO_Init(GPIOB, &GPIO_InitStructure);
 
-    GPIO_SetBits(GPIOB, GPIO_Pin_7);
+    GPIO_ResetBits(GPIOB, GPIO_Pin_7);
 }
 
 void motor_pwr_on(void)
@@ -122,12 +122,12 @@ void motor_pwr_off(void)
 
 void lock_ctrl_lock(void)
 {
-    GPIO_ResetBits(platform_gpio_pins[PLATFORM_GPIO_LOCK_CTRL].GPIOx, platform_gpio_pins[PLATFORM_GPIO_LOCK_CTRL].GPIO_Pin);
+    GPIO_SetBits(platform_gpio_pins[PLATFORM_GPIO_LOCK_CTRL].GPIOx, platform_gpio_pins[PLATFORM_GPIO_LOCK_CTRL].GPIO_Pin);
 }
 
 void lock_ctrl_unlock(void)
 {
-    GPIO_SetBits(platform_gpio_pins[PLATFORM_GPIO_LOCK_CTRL].GPIOx, platform_gpio_pins[PLATFORM_GPIO_LOCK_CTRL].GPIO_Pin);
+    GPIO_ResetBits(platform_gpio_pins[PLATFORM_GPIO_LOCK_CTRL].GPIOx, platform_gpio_pins[PLATFORM_GPIO_LOCK_CTRL].GPIO_Pin);
 }
 
 static void platform_gpio_init(void)

@@ -3,8 +3,8 @@
 #include "stdio.h"
 #include "sys.h"
 
-#define RFID_UART_SEND_SIZE      64
-#define RFID_UART_RCV_SIZE       64
+#define RFID_UART_SEND_SIZE      32
+#define RFID_UART_RCV_SIZE       32
 
 
 
