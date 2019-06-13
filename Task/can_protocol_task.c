@@ -350,7 +350,8 @@ uint16_t CmdProcessing(can_id_union *id, uint8_t *data_in, uint16_t data_len, ui
                     if(data_len == 1)
                     {
                         uint16_t id = 0;
-                        if(get_sw_rfid_id(&id) >= 0)
+                        uint16_t station_id = 0;
+                        if(get_sw_rfid_id(&id, &station_id) >= 0)
                         {
                             data_out[0] = 1;
                             data_out[1] = id >> 8;

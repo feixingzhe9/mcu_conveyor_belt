@@ -47,15 +47,47 @@ void sanwei_rfid_main_task(void *pdata)
     uint16_t tag_type = 0;
     uint8_t card_space = 0;
     uint8_t card_context[16] = {0};
-    uint8_t write_test_data[16] = {0x12, 0x34, 0x56, 0x78, 0x9a, 0xbc, 0xde, 0xf0, 0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77, 0x88};
+    uint8_t write_test_data[16] = {0xaa, 0xbb, 0x56, 0x78, 0x9a, 0xbc, 0xde, 0xf0, 0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77, 0x88};
     uint8_t ack_ok_flag = FALSE;
     delay_ms(5000);
-//    uint16_t id = 0;
-//    get_sw_rfid_id(&id);
+
+
+    uint16_t src_id = 0xaa16;
+    uint16_t dst_id = 0xcc25;
+    uint16_t time = 0xbbbb;
+    uint16_t service_id = src_id;
+    if(write_sw_rfid_info(dst_id, src_id, service_id, time) < 0)
+    {
+        delay_ms(5000);
+    }
     for(;;)
     {
         switch(state)
         {
+            case STATE_SET_MODE:     //寻卡
+            {
+                uint8_t retry_cnt = 3;
+                while(retry_cnt--)
+                {
+                    set_rfid_work_mode(0);
+                    ack = (sw_rfid_ack_t *)OSQPend(sw_rfid_ack_queue_handle, SW_RFID_ACK_TIME_OUT, &err);
+                    if(ack)
+                    {
+                        if(ack->cmd == SW_RFID_PROTOCOL_CMD_SET_MODE)
+                        {
+                            if(ack->result == 0)
+                            {
+                                state = STATE_SEARCH_CARD;
+                                OSMemPut(sw_rfid_ack_mem_handle, ack);
+                                break;
+                            }
+                        }
+                    }
+                }
+                state = STATE_SEARCH_CARD;
+                break;
+            }
+
             case STATE_SEARCH_CARD:     //寻卡
             {
                 uint8_t retry_cnt = 3;
@@ -146,7 +178,7 @@ void sanwei_rfid_main_task(void *pdata)
                 uint8_t retry_cnt = 3;
                 while(retry_cnt--)
                 {
-                    verify_secret_key();
+                    verify_secret_key(52);
                     ack = (sw_rfid_ack_t *)OSQPend(sw_rfid_ack_queue_handle, SW_RFID_ACK_TIME_OUT, &err);
                     if(ack)
                     {
@@ -175,7 +207,7 @@ void sanwei_rfid_main_task(void *pdata)
                 uint8_t retry_cnt = 3;
                 while(retry_cnt--)
                 {
-                    read_rfid(0x34);
+                    read_rfid(52);
                     ack = (sw_rfid_ack_t *)OSQPend(sw_rfid_ack_queue_handle, SW_RFID_ACK_TIME_OUT, &err);
                     if(ack)
                     {
@@ -203,7 +235,7 @@ void sanwei_rfid_main_task(void *pdata)
                 uint8_t retry_cnt = 3;
                 while(retry_cnt--)
                 {
-                    write_rfid(0x34, write_test_data);
+                    write_rfid(52, write_test_data);
                     ack = (sw_rfid_ack_t *)OSQPend(sw_rfid_ack_queue_handle, SW_RFID_ACK_TIME_OUT, &err);
                     if(ack)
                     {

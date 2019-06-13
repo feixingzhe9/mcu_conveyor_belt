@@ -15,7 +15,7 @@
 
 #define SW_RFID_ACK_QUEUE_NUM       SW_RFID_ACK_BUF_NUM
 
-
+#define SW_RFID_PROTOCOL_CMD_SET_MODE                   0x3A
 #define SW_RFID_PROTOCOL_CMD_SEARCH_CARD                0x46
 #define SW_RFID_PROTOCOL_CMD_PREVENT_CONFLICT           0x47
 #define SW_RFID_PROTOCOL_CMD_SELECT_CARD                0x48
@@ -41,16 +41,18 @@ typedef struct
 }sw_rfid_ack_t;
 
 void sanwei_rfid_init(void);
+uint8_t set_rfid_work_mode(uint8_t mode);
 uint8_t search_card(void);
 uint8_t prevent_conflict(void);
 uint8_t select_card(uint32_t id);
-uint8_t verify_secret_key(void);
+uint8_t verify_secret_key(uint8_t absolut_block_num);
 uint8_t read_rfid(uint8_t absolute_block_num);
 uint8_t write_rfid(uint8_t absolute_block_num, uint8_t *data);
 
 uint8_t sanwei_rfid_rcv_proccess(uint8_t *data, uint8_t len);
 
-int get_sw_rfid_id(uint16_t *id);
+int get_sw_rfid_id(uint16_t *card_id, uint16_t *station_id);
+int write_sw_rfid_info(uint16_t dst_id, uint16_t src_id, uint16_t service_id, uint16_t time);
 
 int free_one_rcv_buf(sw_rfid_uart_rcv_buf_t *buf);
 sw_rfid_uart_rcv_buf_t *get_latest_buf(void);

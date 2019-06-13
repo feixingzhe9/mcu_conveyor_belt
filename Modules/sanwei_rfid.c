@@ -5,6 +5,7 @@
 
 #include "sanwei_rfid.h"
 #include "usart.h"
+#include "delay.h"
 #include <string.h>
 
 //static uint8_t pre_send_data_buf[PRE_SEND_DATA_LEN] = {0x02,0x04,0x05,0x02,0x03,0x10,0x03};
@@ -218,7 +219,7 @@ uint8_t set_rfid_work_mode(uint8_t mode)    //02 00 00 04 3a 41 7f 03           
     pre_send_data_buf[1] = 0;       //模块地址
     pre_send_data_buf[2] = 0;       //模块地址
     pre_send_data_buf[3] = 4;       //length:从长度字到校验字的字节数
-    pre_send_data_buf[4] = 0x3a;
+    pre_send_data_buf[4] = SW_RFID_PROTOCOL_CMD_SET_MODE;
     /* data */
     pre_send_data_buf[5] = 0x41;    //'A'
 
@@ -245,7 +246,8 @@ uint8_t search_card(void)      //02 00 00 04 46 52 9c 03       ack:02 00 00 05 4
     pre_send_data_buf[3] = 4;       //length:从长度字到校验字的字节数
     pre_send_data_buf[4] = 0x46;
     /* data */
-    pre_send_data_buf[5] = 0x52;
+//    pre_send_data_buf[5] = 0x52;
+    pre_send_data_buf[5] = 0x26;
 
     check_value = cal_check_value(&pre_send_data_buf[1], 5);    //从模块地址到数据域结束
     pre_send_data_buf[6] = check_value;         //校验字
@@ -284,6 +286,9 @@ uint8_t prevent_conflict(void)      //02 00 00 04 47 04 4f 03    ack:02 00 00 07
 }
 
 
+
+
+//02 00 00 07 48 c0 4e e6 a4 e7 03
 uint8_t select_card(uint32_t id)        //02 00 00 07 48 12 3c 56 56 46 03          ack:02 00 00 04 48 00 08 54 03 
 {
     uint8_t check_value = 0;
@@ -311,7 +316,7 @@ uint8_t select_card(uint32_t id)        //02 00 00 07 48 12 3c 56 56 46 03      
     return 0;
 }
 
-uint8_t verify_secret_key(void)//固定key为6个0xff        //02 00 00 0b 4A 60 34 ff ff ff ff ff ff e3 03          ack:02 00 00 10 03 4A 00 4D 03 
+uint8_t verify_secret_key(uint8_t absolut_block_num)//固定key为6个0xff        //02 00 00 0b 4A 60 34 ff ff ff ff ff ff e3 03          ack:02 00 00 10 03 4A 00 4D 03 
 {
     uint8_t check_value = 0;
     uint8_t len = 0;
@@ -322,7 +327,7 @@ uint8_t verify_secret_key(void)//固定key为6个0xff        //02 00 00 0b 4A 60
     pre_send_data_buf[4] = 0x4A;
     /* data */
     pre_send_data_buf[5] = 0x60;    //验证A密钥
-    pre_send_data_buf[6] = 0x34;    //块 52
+    pre_send_data_buf[6] = absolut_block_num;    //块 52
     pre_send_data_buf[7] = 0xff;
     pre_send_data_buf[8] = 0xff;
     pre_send_data_buf[9] = 0xff;
@@ -343,6 +348,8 @@ uint8_t verify_secret_key(void)//固定key为6个0xff        //02 00 00 0b 4A 60
 }
 
 
+
+//02 00 00 04 4b 38 87 03
 uint8_t read_rfid(uint8_t absolute_block_num)   // e.g: 02 00 00 04 4b 34 83 03           ack: 02 00 00 13 4B 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 5E 03 
 {
     uint8_t check_value = 0;
@@ -375,7 +382,7 @@ uint8_t write_rfid(uint8_t absolute_block_num, uint8_t *data)   //写入对应�
     pre_send_data_buf[0] = PROTOCOL_HEAD;
     pre_send_data_buf[1] = 0;       //模块地址
     pre_send_data_buf[2] = 0;       //模块地址
-    pre_send_data_buf[3] = 4;       //length:从长度字到校验字的字节数
+    pre_send_data_buf[3] = 20;       //length:从长度字到校验字的字节数
     pre_send_data_buf[4] = SW_RFID_PROTOCOL_CMD_WRITE_BLOCK;    //cmd: 读块
     /* data */
     pre_send_data_buf[5] = absolute_block_num;  //绝对块号
@@ -405,7 +412,7 @@ uint8_t write_rfid(uint8_t absolute_block_num, uint8_t *data)   //写入对应�
 
 static bool is_protocol_cmd(uint8_t cmd)
 {
-    if((cmd == SW_RFID_PROTOCOL_CMD_SEARCH_CARD) || (cmd == SW_RFID_PROTOCOL_CMD_PREVENT_CONFLICT) || (cmd == SW_RFID_PROTOCOL_CMD_SELECT_CARD) || \
+    if((cmd == SW_RFID_PROTOCOL_CMD_SET_MODE) || (cmd == SW_RFID_PROTOCOL_CMD_SEARCH_CARD) || (cmd == SW_RFID_PROTOCOL_CMD_PREVENT_CONFLICT) || (cmd == SW_RFID_PROTOCOL_CMD_SELECT_CARD) || \
         (cmd == SW_RFID_PROTOCOL_CMD_VERIFY_SECRET_KEY) || (cmd == SW_RFID_PROTOCOL_CMD_READ_BLOCK) || (cmd == SW_RFID_PROTOCOL_CMD_WRITE_BLOCK))
     {
         return TRUE;
@@ -485,12 +492,13 @@ uint8_t sanwei_rfid_rcv_proccess(uint8_t *data_tmp, uint8_t len_tmp)
 
 
 #define SW_RFID_ACK_TIME_OUT    (5 * OS_TICKS_PER_SEC / 10)
-int get_sw_rfid_id(uint16_t *id)
+int get_sw_rfid_id(uint16_t *card_id, uint16_t *station_id)    //不做出错重发，出错就返回，重发留给工控
 {
     sw_rfid_ack_t *ack = NULL;
     uint8_t err = 0;
-    uint32_t card_id = 0;
+    uint32_t card_uuid = 0;
     
+    /*******寻卡*******/
     search_card();
     ack = (sw_rfid_ack_t *)OSQPend(sw_rfid_ack_queue_handle, SW_RFID_ACK_TIME_OUT, &err);
     if(ack)
@@ -510,6 +518,8 @@ int get_sw_rfid_id(uint16_t *id)
         return -1;
     }
 
+    //delay_ms(30);
+    /*******防冲突*******/
     prevent_conflict();
     ack = (sw_rfid_ack_t *)OSQPend(sw_rfid_ack_queue_handle, SW_RFID_ACK_TIME_OUT, &err);
     if(ack)
@@ -518,7 +528,7 @@ int get_sw_rfid_id(uint16_t *id)
         {
             if(ack->data_len == 4)
             {
-                card_id = (ack->data[0] << 24) | (ack->data[1] << 16) | (ack->data[2] << 8) | ack->data[3];
+                card_uuid = (ack->data[0] << 24) | (ack->data[1] << 16) | (ack->data[2] << 8) | ack->data[3];
             }
             OSMemPut(sw_rfid_ack_mem_handle, ack);
         }
@@ -533,7 +543,9 @@ int get_sw_rfid_id(uint16_t *id)
         return -1;
     }
 
-    select_card(card_id);
+    //delay_ms(30);
+    /*******根据卡的唯一id来选卡*******/
+    select_card(card_uuid);
     ack = (sw_rfid_ack_t *)OSQPend(sw_rfid_ack_queue_handle, SW_RFID_ACK_TIME_OUT, &err);
     if(ack)
     {
@@ -552,7 +564,9 @@ int get_sw_rfid_id(uint16_t *id)
         return -1;
     }
 
-    verify_secret_key();
+    //delay_ms(30);
+    /*******验证密钥 0xff 0xff 0xff 0xff 0xff 0xff*******/
+    verify_secret_key(56);
     ack = (sw_rfid_ack_t *)OSQPend(sw_rfid_ack_queue_handle, SW_RFID_ACK_TIME_OUT, &err);
     if(ack)
     {
@@ -567,7 +581,9 @@ int get_sw_rfid_id(uint16_t *id)
         }
     }
 
-    read_rfid(0x34);
+    //delay_ms(30);
+    /*******读块，id 数据存在 块52的前两个字节*******/
+    read_rfid(56);
     ack = (sw_rfid_ack_t *)OSQPend(sw_rfid_ack_queue_handle, SW_RFID_ACK_TIME_OUT, &err);
     if(ack)
     {
@@ -576,7 +592,7 @@ int get_sw_rfid_id(uint16_t *id)
             if(ack->data_len == 16)
             {
 //                memcpy((uint8_t *)id, ack->data, 2);
-                *id = (ack->data[0] << 8) | ack->data[1];
+                *card_id = (ack->data[0] << 8) | ack->data[1];
             }
             OSMemPut(sw_rfid_ack_mem_handle, ack);
         }
@@ -590,4 +606,69 @@ int get_sw_rfid_id(uint16_t *id)
 }
 
 
+int write_sw_rfid_info(uint16_t dst_id, uint16_t src_id, uint16_t service_id, uint16_t time)
+{
+    uint16_t card_id = 0x1234;
+    uint16_t station_id = 0;
+    uint8_t data[16] = {0};
+    sw_rfid_ack_t *ack = NULL;
+    uint8_t err = 0;
+    uint32_t card_uuid = 0;
+    if(get_sw_rfid_id(&card_id, &station_id) < 0)
+    {
+        return -1;
+    }
+
+    data[0] = card_id >> 8;
+    data[1] = card_id & 0xff;
+
+    data[2] = station_id >> 8;
+    data[3] = station_id & 0xff;
+
+    data[4] = dst_id >> 8;
+    data[5] = dst_id & 0xff;
+
+    data[6] = src_id >> 8;
+    data[7] = src_id & 0xff;
+
+    data[8] = service_id >> 8;
+    data[9] = service_id & 0xff;
+
+    data[10] = time >> 8;
+    data[11] = time & 0xff;
+
+    /*******验证密钥 0xff 0xff 0xff 0xff 0xff 0xff*******/
+    verify_secret_key(56);
+    ack = (sw_rfid_ack_t *)OSQPend(sw_rfid_ack_queue_handle, SW_RFID_ACK_TIME_OUT, &err);
+    if(ack)
+    {
+        if((ack->cmd == SW_RFID_PROTOCOL_CMD_VERIFY_SECRET_KEY) && (ack->result == 0))
+        {
+            OSMemPut(sw_rfid_ack_mem_handle, ack);
+        }
+        else
+        {
+            OSMemPut(sw_rfid_ack_mem_handle, ack);
+            return -1;
+        }
+    }
+    //delay_ms(30);
+
+    write_rfid(56, data);
+
+    ack = (sw_rfid_ack_t *)OSQPend(sw_rfid_ack_queue_handle, SW_RFID_ACK_TIME_OUT, &err);
+    if(ack)
+    {
+        if((ack->cmd == SW_RFID_PROTOCOL_CMD_WRITE_BLOCK) && (ack->result == 0))
+        {
+            OSMemPut(sw_rfid_ack_mem_handle, ack);
+        }
+        else
+        {
+            OSMemPut(sw_rfid_ack_mem_handle, ack);
+            return -1;
+        }
+    }
+    return 0;
+}
 
