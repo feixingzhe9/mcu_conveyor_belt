@@ -368,6 +368,25 @@ uint16_t CmdProcessing(can_id_union *id, uint8_t *data_in, uint16_t data_len, ui
                     }
                     break;
 
+                case CAN_SOURCE_ID_WRITE_SANWEI_RFID_INFO:
+                    if(data_len == 7)
+                    {
+                        uint16_t dst_id = (data_in[1]) << 8 | data_in[2];
+                        uint16_t src_id = (data_in[3]) << 8 | data_in[4];
+                        uint16_t time = (data_in[5]) << 8 | data_in[6];
+                        if(write_sw_rfid_info(dst_id, src_id, src_id, time) >= 0)
+                        {
+                            data_out[0] = 1;
+                            return 1;
+                        }
+                        else
+                        {
+                            data_out[0] = 0;
+                            return 1;
+                        }
+                    }
+                    break;
+
                 default :
                     break;
             }

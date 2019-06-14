@@ -12,7 +12,7 @@ void can_send_task(void *pdata);
 
 
 #define HW_VERSION                      "M30_SUNWAY_INTE_V0.1"
-#define SW_VERSION                      "MCU_CONVEYOR_V101"
+#define SW_VERSION                      "MCU_CONVEYOR_V102"
 #define PROTOCOL_VERSION                "20170619P0001"
 
 #define CMD_NOT_FOUND   0
@@ -49,6 +49,7 @@ void can_send_task(void *pdata);
 
 #define CAN_SOURCE_ID_LOCK_CTRL                     0xa2
 #define CAN_SOURCE_ID_GET_SANWEI_RFID_ID            0xa3
+#define CAN_SOURCE_ID_WRITE_SANWEI_RFID_INFO        0xa4
 
 
 #define CAN_ONE_FRAME_DATA_LENTH    7

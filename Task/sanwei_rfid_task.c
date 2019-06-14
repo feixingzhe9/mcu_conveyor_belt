@@ -52,16 +52,17 @@ void sanwei_rfid_main_task(void *pdata)
     delay_ms(5000);
 
 
-    uint16_t src_id = 0xaa16;
-    uint16_t dst_id = 0xcc25;
-    uint16_t time = 0xbbbb;
-    uint16_t service_id = src_id;
-    if(write_sw_rfid_info(dst_id, src_id, service_id, time) < 0)
-    {
-        delay_ms(5000);
-    }
+//    uint16_t src_id = 0xaa16;
+//    uint16_t dst_id = 0xcc25;
+//    uint16_t time = 0xbbbb;
+//    uint16_t service_id = src_id;
+//    if(write_sw_rfid_info(dst_id, src_id, service_id, time) < 0)
+//    {
+//        delay_ms(5000);
+//    }
     for(;;)
     {
+        /**************测试任务代码****************/
         switch(state)
         {
             case STATE_SET_MODE:     //寻卡

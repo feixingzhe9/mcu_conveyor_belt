@@ -566,7 +566,7 @@ int get_sw_rfid_id(uint16_t *card_id, uint16_t *station_id)    //不做出错重
 
     //delay_ms(30);
     /*******验证密钥 0xff 0xff 0xff 0xff 0xff 0xff*******/
-    verify_secret_key(56);
+    verify_secret_key(52);
     ack = (sw_rfid_ack_t *)OSQPend(sw_rfid_ack_queue_handle, SW_RFID_ACK_TIME_OUT, &err);
     if(ack)
     {
@@ -583,7 +583,7 @@ int get_sw_rfid_id(uint16_t *card_id, uint16_t *station_id)    //不做出错重
 
     //delay_ms(30);
     /*******读块，id 数据存在 块52的前两个字节*******/
-    read_rfid(56);
+    read_rfid(52);
     ack = (sw_rfid_ack_t *)OSQPend(sw_rfid_ack_queue_handle, SW_RFID_ACK_TIME_OUT, &err);
     if(ack)
     {
