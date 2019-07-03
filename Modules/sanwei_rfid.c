@@ -608,12 +608,12 @@ int get_sw_rfid_id(uint16_t *card_id, uint16_t *station_id)    //不做出错重
 
 int write_sw_rfid_info(uint16_t dst_id, uint16_t src_id, uint16_t service_id, uint16_t time)
 {
-    uint16_t card_id = 0x1234;
+    uint16_t card_id = 0;
     uint16_t station_id = 0;
     uint8_t data[16] = {0};
     sw_rfid_ack_t *ack = NULL;
     uint8_t err = 0;
-    uint32_t card_uuid = 0;
+
     if(get_sw_rfid_id(&card_id, &station_id) < 0)
     {
         return -1;
@@ -661,6 +661,60 @@ int write_sw_rfid_info(uint16_t dst_id, uint16_t src_id, uint16_t service_id, ui
     {
         if((ack->cmd == SW_RFID_PROTOCOL_CMD_WRITE_BLOCK) && (ack->result == 0))
         {
+            OSMemPut(sw_rfid_ack_mem_handle, ack);
+        }
+        else
+        {
+            OSMemPut(sw_rfid_ack_mem_handle, ack);
+            return -1;
+        }
+    }
+    return 0;
+}
+
+
+
+int read_sw_rfid_info(uint16_t *card_id, uint16_t *station_id, uint16_t *dst_id, uint16_t *src_id, uint16_t *service_id, uint16_t *time)
+{
+    sw_rfid_ack_t *ack = NULL;
+    uint8_t err = 0;
+
+    if(get_sw_rfid_id(card_id, station_id) < 0)
+    {
+        return -1;
+    }
+
+
+    /*******验证密钥 0xff 0xff 0xff 0xff 0xff 0xff*******/
+    verify_secret_key(56);
+    ack = (sw_rfid_ack_t *)OSQPend(sw_rfid_ack_queue_handle, SW_RFID_ACK_TIME_OUT, &err);
+    if(ack)
+    {
+        if((ack->cmd == SW_RFID_PROTOCOL_CMD_VERIFY_SECRET_KEY) && (ack->result == 0))
+        {
+            OSMemPut(sw_rfid_ack_mem_handle, ack);
+        }
+        else
+        {
+            OSMemPut(sw_rfid_ack_mem_handle, ack);
+            return -1;
+        }
+    }
+    //delay_ms(30);
+
+    read_rfid(56);
+    ack = (sw_rfid_ack_t *)OSQPend(sw_rfid_ack_queue_handle, SW_RFID_ACK_TIME_OUT, &err);
+    if(ack)
+    {
+        if((ack->cmd == SW_RFID_PROTOCOL_CMD_READ_BLOCK) && (ack->result == 0))
+        {
+            if(ack->data_len == 16)
+            {
+                *dst_id = (ack->data[4] << 8) | ack->data[5];
+                *src_id = (ack->data[6] << 8) | ack->data[7];
+                *service_id = *src_id;
+                *time = (ack->data[10] << 8) | ack->data[11];
+            }
             OSMemPut(sw_rfid_ack_mem_handle, ack);
         }
         else

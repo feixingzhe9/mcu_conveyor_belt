@@ -50,6 +50,7 @@ void can_send_task(void *pdata);
 #define CAN_SOURCE_ID_LOCK_CTRL                     0xa2
 #define CAN_SOURCE_ID_GET_SANWEI_RFID_ID            0xa3
 #define CAN_SOURCE_ID_WRITE_SANWEI_RFID_INFO        0xa4
+#define CAN_SOURCE_ID_READ_SANWEI_RFID_INFO         0xa5
 
 
 #define CAN_ONE_FRAME_DATA_LENTH    7
