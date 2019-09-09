@@ -23,6 +23,44 @@ OS_EVENT * pho_state_mailbox;
 extern void upload_conveyor_belt_status(uint8_t status);
 
 
+typedef uint8_t (*forward_conveyor_belt_fn)(void);
+typedef uint8_t (*reverse_conveyor_belt_fn)(void);
+typedef uint8_t (*stop_conveyor_belt_fn)(void);
+typedef uint8_t (*get_pho_switch_state_fn)(void);
+
+
+forward_conveyor_belt_fn forward_conveyor_belt_f;
+reverse_conveyor_belt_fn reverse_conveyor_belt_f;
+stop_conveyor_belt_fn stop_conveyor_belt_f;
+get_pho_switch_state_fn get_pho_switch_state_f;
+
+
+
+void set_work_conveyor(uint8_t deck)
+{
+    switch(deck)
+    {
+        case DECK_LOWER:
+            forward_conveyor_belt_f = forward_lower_conveyor_belt;
+            reverse_conveyor_belt_f = reverse_lower_conveyor_belt;
+            get_pho_switch_state_f = get_pho_switch_lower_state;
+            stop_conveyor_belt_f = stop_conveyor_belt;
+            conveyor_index = DECK_LOWER;
+            break;
+
+        case DECK_UPPER:
+            forward_conveyor_belt_f = forward_upper_conveyor_belt;
+            reverse_conveyor_belt_f = reverse_upper_conveyor_belt;
+            get_pho_switch_state_f = get_pho_switch_upper_state;
+            stop_conveyor_belt_f = stop_conveyor_belt;
+            conveyor_index = DECK_UPPER;
+            break;
+
+        default: return;
+    }
+    stop_conveyor_belt_f();
+}
+
 void upload_pho_state_upload_task(void *pdata)
 {
     uint8_t err = 0;
@@ -49,10 +87,10 @@ void pho_switch_status_task(void *pdata)
     uint8_t pre_state = 0;
     uint8_t cnt = 0;
     uint8_t i = 0;
-    delay_ms(5000);
+    delay_ms(1000);
     while(1)
     {
-        state_buf[cnt] = get_pho_switch_state();
+        state_buf[cnt] = get_pho_switch_state_f();
         if(cnt < PHO_SWITCH_STATE_BUF_SIZE)
         {
             cnt++;
@@ -118,153 +156,154 @@ void pho_switch_status_task(void *pdata)
 
 #define TICK_DELAY_MS           20
 #define STOP_TICK_CNT           (500 / TICK_DELAY_MS)
-#define LOAD_TIME_OUT_CNT       (120000 / TICK_DELAY_MS)
-#define UNLOAD_TIME_OUT_CNT     (120000 / TICK_DELAY_MS)
+#define LOAD_TIME_OUT_CNT       (20000 / TICK_DELAY_MS)
+#define UNLOAD_TIME_OUT_CNT     (20000 / TICK_DELAY_MS)
 #define UNLOAD_STOP_CNT         (2000 / TICK_DELAY_MS)
 void conveyor_belt_task(void *pdata)
 {
-    uint8_t work_mode = 0;
-    uint8_t pre_work_mode = 0;
-    uint32_t tick_cnt = 0;
-    uint32_t stop_cnt = 0;
-    uint32_t unload_stop_cnt = 0;
-    uint32_t load_cnt = 0;
-    uint32_t unload_cnt = 0;
-    uint8_t load_state = 0;
-    uint8_t unload_state = 0;
-    uint8_t switch_state = 0;
-    delay_ms(5000);
+    uint8_t work_mode[DECK_MAX] = {0};
+    uint8_t pre_work_mode[DECK_MAX] = {0};
+    uint32_t tick_cnt[DECK_MAX] = {0};
+    uint32_t stop_cnt[DECK_MAX] = {0};
+    uint32_t unload_stop_cnt[DECK_MAX] = {0};
+    uint32_t load_cnt[DECK_MAX] = {0};
+    uint32_t unload_cnt[DECK_MAX] = {0};
+    uint8_t load_state[DECK_MAX] = {0};
+    uint8_t unload_state[DECK_MAX] = {0};
+    uint8_t switch_state[DECK_MAX] = {0};
+    set_work_conveyor(DECK_UPPER);
+    set_conveyor_belt_load(0);
+    delay_ms(2000);
     while(1)
     {
-
         OS_ENTER_CRITICAL();
-        work_mode = conveyor_belt.work_mode;
-        switch_state = pho_switch_state;
+        work_mode[conveyor_index] = conveyor_belt[conveyor_index].work_mode;
+        switch_state[conveyor_index] = pho_switch_state;
         OS_EXIT_CRITICAL();
-        if(work_mode != pre_work_mode)
+        if(work_mode[conveyor_index] != pre_work_mode[conveyor_index])
         {
-            pre_work_mode = work_mode;
-            stop_conveyor_belt();
-            stop_cnt = STOP_TICK_CNT;
-            load_cnt = 0;
-            unload_cnt = 0;
+            pre_work_mode[conveyor_index] = work_mode[conveyor_index];
+            stop_conveyor_belt_f();
+            stop_cnt[conveyor_index] = STOP_TICK_CNT;
+            load_cnt[conveyor_index] = 0;
+            unload_cnt[conveyor_index] = 0;
         }
-        if(stop_cnt > 0)
+        if(stop_cnt[conveyor_index] > 0)
         {
-            stop_cnt--;
+            stop_cnt[conveyor_index]--;
         }
         else
         {
-            if(work_mode == CONVEYOR_BELT_STATUS_LOAD)
+            if(work_mode[conveyor_index] == CONVEYOR_BELT_STATUS_LOAD)
             {
-                load_cnt++;
-                switch(load_state)
+                load_cnt[conveyor_index]++;
+                switch(load_state[conveyor_index])
                 {
                     case 0: //forward
                         lock_ctrl(LOCK_STATUS_UNLOCK);
-                        if(switch_state & PHO_SWITCH_3_TRIGGERED)
+                        if(switch_state[conveyor_index] & PHO_SWITCH_3_TRIGGERED)
                         {
-                            stop_conveyor_belt();   //stop immediately !
-                            if(conveyor_belt.need_lock == 0)
+                            stop_conveyor_belt_f();   //stop immediately !
+                            if(conveyor_belt[conveyor_index].need_lock == 0)
                             {
-                                load_state = 4;
+                                load_state[conveyor_index] = 4;
                             }
                             else
                             {
-                                load_state = 3;
+                                load_state[conveyor_index] = 3;
                             }
                         }
                         else
                         {
-                            load_state = 1;
+                            load_state[conveyor_index] = 1;
                         }
                         break;
 
                     case 1:
-                        forward_conveyor_belt();
-                        load_state = 2;
+                        forward_conveyor_belt_f();
+                        load_state[conveyor_index] = 2;
                         break;
 
                     case 2:
-                        if(switch_state & PHO_SWITCH_3_TRIGGERED)
+                        if(switch_state[conveyor_index] & PHO_SWITCH_3_TRIGGERED)
                         {
-                            stop_conveyor_belt();   //stop immediately !
-                            if(conveyor_belt.need_lock == 0)
+                            stop_conveyor_belt_f();   //stop immediately !
+                            if(conveyor_belt[conveyor_index].need_lock == 0)
                             {
-                                load_state = 4;
+                                load_state[conveyor_index] = 4;
                             }
                             else
                             {
-                                load_state = 3;
+                                load_state[conveyor_index] = 3;
                             }
                         }
                         break;
 
                     case 3:     //delay and lock
-                        if(conveyor_belt.need_lock == 1)
+                        if(conveyor_belt[conveyor_index].need_lock == 1)
                         {
                             //delay_ms(800);
                             lock_ctrl(LOCK_STATUS_LOCK);
                         }
-                        load_state = 4;
+                        load_state[conveyor_index] = 4;
                         break;
 
                     case 4:     //load finished
                         OS_ENTER_CRITICAL();
-                        conveyor_belt.work_mode = CONVEYOR_BELT_STATUS_STOP;
+                        conveyor_belt[conveyor_index].work_mode = CONVEYOR_BELT_STATUS_STOP;
                         OS_EXIT_CRITICAL();
-                        work_mode = CONVEYOR_BELT_STATUS_STOP;
+                        work_mode[conveyor_index] = CONVEYOR_BELT_STATUS_STOP;
                         upload_conveyor_belt_status(CONVEYOR_LOAD_FINISHED_OK);
-                        load_state = 0;
+                        load_state[conveyor_index] = 0;
                         break;
 
                     default :
                         break;
                 }
-                if(load_cnt >= LOAD_TIME_OUT_CNT)
+                if(load_cnt[conveyor_index] >= LOAD_TIME_OUT_CNT)
                 {
                     OS_ENTER_CRITICAL();
-                    conveyor_belt.work_mode = CONVEYOR_BELT_STATUS_STOP;
+                    conveyor_belt[conveyor_index].work_mode = CONVEYOR_BELT_STATUS_STOP;
                     OS_EXIT_CRITICAL();
-                    work_mode = CONVEYOR_BELT_STATUS_STOP;
+                    work_mode[conveyor_index] = CONVEYOR_BELT_STATUS_STOP;
                     upload_conveyor_belt_status(CONVEYOR_BELT_LOAD_TIME_OUT);
-                    load_state = 0;
+                    load_state[conveyor_index] = 0;
                 }
             }
-            else if(work_mode == CONVEYOR_BELT_STATUS_UNLOAD)
+            else if(work_mode[conveyor_index] == CONVEYOR_BELT_STATUS_UNLOAD)
             {
-                unload_cnt++;
-                switch(unload_state)
+                unload_cnt[conveyor_index]++;
+                switch(unload_state[conveyor_index])
                 {
                     case 0:     //unlock first
                         lock_ctrl(LOCK_STATUS_UNLOCK);
                         delay_ms(800);
-                        unload_state = 1;
+                        unload_state[conveyor_index] = 1;
                         break;
 
                     case 1:     //
                         //reverse_conveyor_belt();
-                        if(switch_state == 0)
+                        if(switch_state[conveyor_index] == 0)
                         {
-                            unload_state = 3;
-                            unload_stop_cnt = UNLOAD_STOP_CNT;
+                            unload_state[conveyor_index] = 3;
+                            unload_stop_cnt[conveyor_index] = UNLOAD_STOP_CNT;
                         }
                         else
                         {
-                            unload_state = 2;
+                            unload_state[conveyor_index] = 2;
                         }
                         break;
 
                     case 2:
-                        reverse_conveyor_belt();
-                        unload_state = 3;
+                        reverse_conveyor_belt_f();
+                        unload_state[conveyor_index] = 3;
                         break;
 
                     case 3:
-                        if(switch_state == 0)
+                        if(switch_state[conveyor_index] == 0)
                         {
-                            unload_state = 4;
-                            unload_stop_cnt = UNLOAD_STOP_CNT;
+                            unload_state[conveyor_index] = 4;
+                            unload_stop_cnt[conveyor_index] = UNLOAD_STOP_CNT;
                         }
                         break;
 
@@ -275,15 +314,15 @@ void conveyor_belt_task(void *pdata)
                         }
                         if(unload_stop_cnt > 0)
                         {
-                            unload_stop_cnt--;
+                            unload_stop_cnt[conveyor_index]--;
                         }
                         else
                         {
                             OS_ENTER_CRITICAL();
-                            conveyor_belt.work_mode = CONVEYOR_BELT_STATUS_STOP;
+                            conveyor_belt[conveyor_index].work_mode = CONVEYOR_BELT_STATUS_STOP;
                             OS_EXIT_CRITICAL();
-                            work_mode = CONVEYOR_BELT_STATUS_STOP;
-                            unload_state = 0;
+                            work_mode[conveyor_index] = CONVEYOR_BELT_STATUS_STOP;
+                            unload_state[conveyor_index] = 0;
                             upload_conveyor_belt_status(CONVEYOR_UNLOAD_FINISHED_OK);
                         }
                         break;
@@ -291,20 +330,20 @@ void conveyor_belt_task(void *pdata)
                     default :
                         break;
                 }
-                if(unload_cnt >= UNLOAD_TIME_OUT_CNT)
+                if(unload_cnt[conveyor_index] >= UNLOAD_TIME_OUT_CNT)
                 {
                     OS_ENTER_CRITICAL();
-                    conveyor_belt.work_mode = CONVEYOR_BELT_STATUS_STOP;
+                    conveyor_belt[conveyor_index].work_mode = CONVEYOR_BELT_STATUS_STOP;
                     OS_EXIT_CRITICAL();
-                    work_mode = CONVEYOR_BELT_STATUS_STOP;
+                    work_mode[conveyor_index] = CONVEYOR_BELT_STATUS_STOP;
                     upload_conveyor_belt_status(CONVEYOR_BELT_UNLOAD_TIME_OUT);
-                    unload_state = 0;
+                    unload_state[conveyor_index] = 0;
                 }
             }
         }
 
         delay_ms(TICK_DELAY_MS);
-        tick_cnt++;
+        tick_cnt[conveyor_index]++;
 
     }
 }

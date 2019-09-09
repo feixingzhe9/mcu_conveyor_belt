@@ -32,7 +32,16 @@ typedef struct
     //uint8_t motor_dir;
 }conveyor_belt_t;
 
-extern conveyor_belt_t conveyor_belt;
+
+enum
+{
+    DECK_LOWER = 0,
+    DECK_UPPER,
+    DECK_MAX,
+};
+
+extern conveyor_belt_t conveyor_belt[DECK_MAX];
+extern uint8_t conveyor_index;
 
 void conveyor_belt_init(void);
 uint8_t set_conveyor_belt_load(uint8_t need_lock);

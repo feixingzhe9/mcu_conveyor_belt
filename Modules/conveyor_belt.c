@@ -8,8 +8,8 @@
 #include "platform.h"
 
 
-conveyor_belt_t conveyor_belt = {0};
-
+conveyor_belt_t conveyor_belt[DECK_MAX] = {0};
+uint8_t conveyor_index = DECK_UPPER;
 void conveyor_belt_init(void)
 {
 
@@ -20,13 +20,13 @@ uint8_t set_conveyor_belt_load(uint8_t need_lock)
     uint8_t state = pho_switch_state;
     if(state == 0)
     {
-        conveyor_belt.work_mode = CONVEYOR_BELT_STATUS_LOAD;
-        conveyor_belt.need_lock = need_lock;
+        conveyor_belt[conveyor_index].work_mode = CONVEYOR_BELT_STATUS_LOAD;
+        conveyor_belt[conveyor_index].need_lock = need_lock;
         return CONVEYOR_BELT_EXEC_OK;
     }
     else
     {
-        conveyor_belt.work_mode = CONVEYOR_BELT_STATUS_STOP;
+        conveyor_belt[conveyor_index].work_mode = CONVEYOR_BELT_STATUS_STOP;
         return CONVEYOR_BELT_IS_OCCUPIED;
     }
 //    conveyor_belt.work_mode = CONVEYOR_BELT_STATUS_LOAD;
@@ -39,12 +39,12 @@ uint8_t set_conveyor_belt_unload(void)
     uint8_t state = pho_switch_state;
     if(state > 0)
     {
-        conveyor_belt.work_mode = CONVEYOR_BELT_STATUS_UNLOAD;
+        conveyor_belt[conveyor_index].work_mode = CONVEYOR_BELT_STATUS_UNLOAD;
         return CONVEYOR_BELT_EXEC_OK;
     }
     else
     {
-        conveyor_belt.work_mode = CONVEYOR_BELT_STATUS_STOP;
+        conveyor_belt[conveyor_index].work_mode = CONVEYOR_BELT_STATUS_STOP;
         return CONVEYOR_BELT_IS_ALREADY_EMPTY;
     }
 //    conveyor_belt.work_mode = CONVEYOR_BELT_STATUS_UNLOAD;
@@ -53,7 +53,7 @@ uint8_t set_conveyor_belt_unload(void)
 
 uint8_t set_conveyor_belt_stop(void)
 {
-    conveyor_belt.work_mode = CONVEYOR_BELT_STATUS_STOP;
+    conveyor_belt[conveyor_index].work_mode = CONVEYOR_BELT_STATUS_STOP;
     return CONVEYOR_BELT_EXEC_OK;
 }
 
@@ -61,19 +61,20 @@ uint8_t set_conveyor_belt_stop(void)
 
 uint8_t lock_ctrl(uint8_t state)
 {
-    if(state == LOCK_STATUS_LOCK)
-    {
-        lock_ctrl_lock();
-    }
-    else if(state == LOCK_STATUS_UNLOCK)
-    {
-        lock_ctrl_unlock();
-    }
-    else
-    {
-        return 0;
-    }
     return 1;
+//    if(state == LOCK_STATUS_LOCK)
+//    {
+//        lock_ctrl_lock();
+//    }
+//    else if(state == LOCK_STATUS_UNLOCK)
+//    {
+//        lock_ctrl_unlock();
+//    }
+//    else
+//    {
+//        return 0;
+//    }
+//    return 1;
 }
 
 
