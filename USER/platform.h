@@ -17,7 +17,7 @@ typedef enum
     PLATFORM_GPIO_MOTOR_EN,
     PLATFORM_GPIO_MOTOR_PWR_EN,
     PLATFORM_GPIO_MOTOR_DIR,
-    PLATFORM_GPIO_LOCK_CTRL,
+//    PLATFORM_GPIO_LOCK_CTRL,
 
 #if defined DOUBLE_DECK
     PLATFORM_GPIO_PHO_SWITCH_LOWER_INSIDE,
@@ -28,10 +28,10 @@ typedef enum
     PLATFORM_GPIO_PHO_SWITCH_UPPER_OUTSIDE,
 
     //PLATFORM_GPIO_MOTOR_PWR_EN,
-    PLATFORM_GPIO_UPPER_MOTOR_EN,
-    PLATFORM_GPIO_UPPER_MOTOR_DIR,
-    PLATFORM_GPIO_LOWER_MOTOR_EN,
-    PLATFORM_GPIO_LOWER_MOTOR_DIR,
+    PLATFORM_GPIO_UPPER_MOTOR_LOAD,
+    PLATFORM_GPIO_UPPER_MOTOR_UNLOAD,
+    PLATFORM_GPIO_LOWER_MOTOR_LOAD,
+    PLATFORM_GPIO_LOWER_MOTOR_UNLOAD,
 
     PLATFORM_GPIO_DOOR_DETECT_UPPER_DOWN_LIMIT,
     PLATFORM_GPIO_DOOR_DETECT_UPPER_UP_LIMIT,
@@ -86,11 +86,17 @@ uint8_t get_pho_switch_lower_insise_state(void);
 #endif
 
 
-uint8_t forward_lower_conveyor_belt(void);
-uint8_t forward_upper_conveyor_belt(void);
+//uint8_t forward_lower_conveyor_belt(void);
+//uint8_t forward_upper_conveyor_belt(void);
 
-uint8_t reverse_lower_conveyor_belt(void);
-uint8_t reverse_upper_conveyor_belt(void);
+//uint8_t reverse_lower_conveyor_belt(void);
+//uint8_t reverse_upper_conveyor_belt(void);
+
+uint8_t upper_conveyor_belt_load(void);
+uint8_t upper_conveyor_belt_unload(void);
+
+uint8_t lower_conveyor_belt_load(void);
+uint8_t lower_conveyor_belt_unload(void);
 
 
 #endif

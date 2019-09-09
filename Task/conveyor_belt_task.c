@@ -41,16 +41,16 @@ void set_work_conveyor(uint8_t deck)
     switch(deck)
     {
         case DECK_LOWER:
-            forward_conveyor_belt_f = forward_lower_conveyor_belt;
-            reverse_conveyor_belt_f = reverse_lower_conveyor_belt;
+            forward_conveyor_belt_f = lower_conveyor_belt_load;
+            reverse_conveyor_belt_f = lower_conveyor_belt_unload;
             get_pho_switch_state_f = get_pho_switch_lower_state;
             stop_conveyor_belt_f = stop_conveyor_belt;
             conveyor_index = DECK_LOWER;
             break;
 
         case DECK_UPPER:
-            forward_conveyor_belt_f = forward_upper_conveyor_belt;
-            reverse_conveyor_belt_f = reverse_upper_conveyor_belt;
+            forward_conveyor_belt_f = upper_conveyor_belt_load;
+            reverse_conveyor_belt_f = upper_conveyor_belt_unload;
             get_pho_switch_state_f = get_pho_switch_upper_state;
             stop_conveyor_belt_f = stop_conveyor_belt;
             conveyor_index = DECK_UPPER;
@@ -156,11 +156,9 @@ void pho_switch_status_task(void *pdata)
 
 #define TICK_DELAY_MS           20
 #define STOP_TICK_CNT           (500 / TICK_DELAY_MS)
-#define LOAD_TIME_OUT_CNT       (20000 / TICK_DELAY_MS)
-#define UNLOAD_TIME_OUT_CNT     (20000 / TICK_DELAY_MS)
+#define LOAD_TIME_OUT_CNT       (120000 / TICK_DELAY_MS)
+#define UNLOAD_TIME_OUT_CNT     (120000 / TICK_DELAY_MS)
 #define UNLOAD_STOP_CNT         (2000 / TICK_DELAY_MS)
-void conveyor_belt_task(void *pdata)
-{
     uint8_t work_mode[DECK_MAX] = {0};
     uint8_t pre_work_mode[DECK_MAX] = {0};
     uint32_t tick_cnt[DECK_MAX] = {0};
@@ -171,9 +169,13 @@ void conveyor_belt_task(void *pdata)
     uint8_t load_state[DECK_MAX] = {0};
     uint8_t unload_state[DECK_MAX] = {0};
     uint8_t switch_state[DECK_MAX] = {0};
-    set_work_conveyor(DECK_UPPER);
-    set_conveyor_belt_load(0);
-    delay_ms(2000);
+void conveyor_belt_task(void *pdata)
+{
+
+    set_work_conveyor(DECK_LOWER);
+//    set_conveyor_belt_load(0);
+    delay_ms(3000);
+    set_conveyor_belt_unload();
     while(1)
     {
         OS_ENTER_CRITICAL();
@@ -308,11 +310,11 @@ void conveyor_belt_task(void *pdata)
                         break;
 
                     case 4:
-                        if(switch_state > 0)
+                        if(switch_state[conveyor_index] > 0)
                         {
                             //unload_state = 1;
                         }
-                        if(unload_stop_cnt > 0)
+                        if(unload_stop_cnt[conveyor_index] > 0)
                         {
                             unload_stop_cnt[conveyor_index]--;
                         }
