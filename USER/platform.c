@@ -34,11 +34,21 @@ const platform_gpio_t platform_gpio_pins[] =
     [PLATFORM_GPIO_PHO_SWITCH_UPPER_OUTSIDE]    = {GPIOB, GPIO_Pin_11},
 
 
-    [PLATFORM_GPIO_UPPER_MOTOR_LOAD]              = {GPIOA, GPIO_Pin_5},
-    [PLATFORM_GPIO_UPPER_MOTOR_UNLOAD]             = {GPIOA, GPIO_Pin_6},
+    [PLATFORM_GPIO_UPPER_MOTOR_LOAD]            = {GPIOA, GPIO_Pin_5},
+    [PLATFORM_GPIO_UPPER_MOTOR_UNLOAD]          = {GPIOA, GPIO_Pin_6},
 
-    [PLATFORM_GPIO_LOWER_MOTOR_LOAD]              = {GPIOA, GPIO_Pin_7},
-    [PLATFORM_GPIO_LOWER_MOTOR_UNLOAD]             = {GPIOB, GPIO_Pin_0},
+    [PLATFORM_GPIO_LOWER_MOTOR_LOAD]            = {GPIOA, GPIO_Pin_7},
+    [PLATFORM_GPIO_LOWER_MOTOR_UNLOAD]          = {GPIOB, GPIO_Pin_0},
+
+
+    [PLATFORM_GPIO_UPPER_DOOR_CTRL]             = {GPIOB, GPIO_Pin_1},
+    [PLATFORM_GPIO_LOWER_DOOR_CTRL]             = {GPIOB, GPIO_Pin_10},
+
+    [PLATFORM_GPIO_DOOR_DETECT_UPPER_DOWN_LIMIT]= {GPIOA, GPIO_Pin_8},
+    [PLATFORM_GPIO_DOOR_DETECT_UPPER_UP_LIMIT]  = {GPIOB, GPIO_Pin_4},
+
+    [PLATFORM_GPIO_DOOR_DETECT_LOWER_DOWN_LIMIT]= {GPIOA, GPIO_Pin_14},
+    [PLATFORM_GPIO_DOOR_DETECT_LOWER_UP_LIMIT]  = {GPIOB, GPIO_Pin_15},
 #endif
 };
 
@@ -121,6 +131,103 @@ static void motor_dir_gpio_init(void)       //new, done
 }
 
 
+static void upper_door_ctrl_gpio_init(void)
+{
+    GPIO_InitTypeDef  GPIO_InitStructure;
+
+    /*GPIO_B*/
+    RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOB, ENABLE);
+    GPIO_InitStructure.GPIO_Pin = GPIO_Pin_1;
+    GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;
+    GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+    GPIO_Init(GPIOB, &GPIO_InitStructure);
+
+    GPIO_ResetBits(GPIOB, GPIO_Pin_1);
+
+}
+
+static void upper_door_detect_gpio_init(void)
+{
+    GPIO_InitTypeDef  GPIO_InitStructure;
+    /*GPIO_B*/
+    RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOB, ENABLE);
+    GPIO_InitStructure.GPIO_Pin = GPIO_Pin_4;
+    GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN_FLOATING;
+
+    GPIO_Init(GPIOB, &GPIO_InitStructure);
+
+
+    /*GPIO_A*/
+    RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOA, ENABLE);
+    GPIO_InitStructure.GPIO_Pin = GPIO_Pin_8;
+    GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN_FLOATING;
+
+    GPIO_Init(GPIOA, &GPIO_InitStructure);
+}
+
+static void lower_door_ctrl_gpio_init(void)
+{
+    GPIO_InitTypeDef  GPIO_InitStructure;
+
+    /*GPIO_B*/
+    RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOB, ENABLE);
+    GPIO_InitStructure.GPIO_Pin = GPIO_Pin_10;
+    GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;
+    GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+    GPIO_Init(GPIOB, &GPIO_InitStructure);
+
+    GPIO_ResetBits(GPIOB, GPIO_Pin_10);
+}
+
+static void lower_door_detect_gpio_init(void)
+{
+    GPIO_InitTypeDef  GPIO_InitStructure;
+    /*GPIO_B*/
+    RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOB, ENABLE);
+    GPIO_InitStructure.GPIO_Pin = GPIO_Pin_15;
+    GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN_FLOATING;
+
+    GPIO_Init(GPIOB, &GPIO_InitStructure);
+
+
+    /*GPIO_A*/
+    RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOA, ENABLE);
+    GPIO_InitStructure.GPIO_Pin = GPIO_Pin_14;
+    GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN_FLOATING;
+
+    GPIO_Init(GPIOA, &GPIO_InitStructure);
+}
+
+uint8_t get_upper_door_up_limit_state(void)
+{
+    return GPIO_ReadInputDataBit(platform_gpio_pins[PLATFORM_GPIO_DOOR_DETECT_UPPER_UP_LIMIT].GPIOx, platform_gpio_pins[PLATFORM_GPIO_DOOR_DETECT_UPPER_UP_LIMIT].GPIO_Pin) == 1 ? 0 : 1; 
+}
+
+uint8_t get_upper_door_down_limit_state(void)
+{
+    return GPIO_ReadInputDataBit(platform_gpio_pins[PLATFORM_GPIO_DOOR_DETECT_UPPER_DOWN_LIMIT].GPIOx, platform_gpio_pins[PLATFORM_GPIO_DOOR_DETECT_UPPER_DOWN_LIMIT].GPIO_Pin) == 1 ? 0 : 1; 
+}
+
+uint8_t get_lower_door_up_limit_state(void)
+{
+    return GPIO_ReadInputDataBit(platform_gpio_pins[PLATFORM_GPIO_DOOR_DETECT_LOWER_UP_LIMIT].GPIOx, platform_gpio_pins[PLATFORM_GPIO_DOOR_DETECT_LOWER_UP_LIMIT].GPIO_Pin) == 1 ? 0 : 1; 
+}
+
+uint8_t get_lower_door_down_limit_state(void)
+{
+    return GPIO_ReadInputDataBit(platform_gpio_pins[PLATFORM_GPIO_DOOR_DETECT_LOWER_DOWN_LIMIT].GPIOx, platform_gpio_pins[PLATFORM_GPIO_DOOR_DETECT_LOWER_DOWN_LIMIT].GPIO_Pin) == 1 ? 0 : 1; 
+}
+
+uint8_t get_upper_door_state(void)
+{
+    return get_upper_door_up_limit_state() | (get_upper_door_down_limit_state() << 1);
+}
+
+uint8_t get_lower_door_state(void)
+{
+    return get_lower_door_up_limit_state() | (get_lower_door_down_limit_state() << 1);
+}
+
 void motor_pwr_on(void)
 {
     GPIO_SetBits(platform_gpio_pins[PLATFORM_GPIO_MOTOR_PWR_EN].GPIOx, platform_gpio_pins[PLATFORM_GPIO_MOTOR_PWR_EN].GPIO_Pin);
@@ -139,13 +246,14 @@ static void platform_gpio_init(void)
     pho_switch_init();
     motor_power_ctrl_gpio_init();
     motor_ctrl_gpio_init();
-
-    extern uint8_t set_conveyor_belt_load(uint8_t need_lock);
-    extern uint8_t set_conveyor_belt_unload(void);
+    upper_door_ctrl_gpio_init();
+    upper_door_detect_gpio_init();
+    lower_door_ctrl_gpio_init();
+    lower_door_detect_gpio_init();
+//    extern uint8_t set_conveyor_belt_load(uint8_t need_lock);
+//    extern uint8_t set_conveyor_belt_unload(void);
     //set_conveyor_belt_load(1);
 }
-
-
 
 
 uint8_t set_conveyor_start(void)
@@ -153,8 +261,6 @@ uint8_t set_conveyor_start(void)
     GPIO_SetBits(platform_gpio_pins[PLATFORM_GPIO_MOTOR_EN].GPIOx, platform_gpio_pins[PLATFORM_GPIO_MOTOR_EN].GPIO_Pin);
     return 0;
 }
-
-
 
 
 uint8_t set_conveyor_stop(void)

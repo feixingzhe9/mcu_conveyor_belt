@@ -87,7 +87,7 @@ void pho_switch_status_task(void *pdata)
     uint8_t pre_state = 0;
     uint8_t cnt = 0;
     uint8_t i = 0;
-    delay_ms(1000);
+    delay_ms(500);
     while(1)
     {
         state_buf[cnt] = get_pho_switch_state_f();
@@ -159,16 +159,16 @@ void pho_switch_status_task(void *pdata)
 #define LOAD_TIME_OUT_CNT       (120000 / TICK_DELAY_MS)
 #define UNLOAD_TIME_OUT_CNT     (120000 / TICK_DELAY_MS)
 #define UNLOAD_STOP_CNT         (2000 / TICK_DELAY_MS)
-    uint8_t work_mode[DECK_MAX] = {0};
-    uint8_t pre_work_mode[DECK_MAX] = {0};
-    uint32_t tick_cnt[DECK_MAX] = {0};
-    uint32_t stop_cnt[DECK_MAX] = {0};
-    uint32_t unload_stop_cnt[DECK_MAX] = {0};
-    uint32_t load_cnt[DECK_MAX] = {0};
-    uint32_t unload_cnt[DECK_MAX] = {0};
-    uint8_t load_state[DECK_MAX] = {0};
-    uint8_t unload_state[DECK_MAX] = {0};
-    uint8_t switch_state[DECK_MAX] = {0};
+static uint8_t work_mode[DECK_MAX] = {0};
+static uint8_t pre_work_mode[DECK_MAX] = {0};
+static uint32_t tick_cnt[DECK_MAX] = {0};
+static uint32_t stop_cnt[DECK_MAX] = {0};
+static uint32_t unload_stop_cnt[DECK_MAX] = {0};
+static uint32_t load_cnt[DECK_MAX] = {0};
+static uint32_t unload_cnt[DECK_MAX] = {0};
+static uint8_t load_state[DECK_MAX] = {0};
+static uint8_t unload_state[DECK_MAX] = {0};
+static uint8_t switch_state[DECK_MAX] = {0};
 void conveyor_belt_task(void *pdata)
 {
 

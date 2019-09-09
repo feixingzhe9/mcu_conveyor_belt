@@ -37,6 +37,9 @@ typedef enum
     PLATFORM_GPIO_DOOR_DETECT_UPPER_UP_LIMIT,
     PLATFORM_GPIO_DOOR_DETECT_LOWER_DOWN_LIMIT,
     PLATFORM_GPIO_DOOR_DETECT_LOWER_UP_LIMIT,
+
+    PLATFORM_GPIO_UPPER_DOOR_CTRL,
+    PLATFORM_GPIO_LOWER_DOOR_CTRL,
 #endif
 
     PLATFORM_GPIO_MAX, /* Denotes the total number of GPIO port aliases. Not a valid GPIO alias */
@@ -98,5 +101,8 @@ uint8_t upper_conveyor_belt_unload(void);
 uint8_t lower_conveyor_belt_load(void);
 uint8_t lower_conveyor_belt_unload(void);
 
+
+uint8_t get_upper_door_state(void);
+uint8_t get_lower_door_state(void);
 
 #endif
