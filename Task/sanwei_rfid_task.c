@@ -48,7 +48,7 @@ void sanwei_rfid_main_task(void *pdata)
     uint8_t card_space = 0;
     uint8_t card_context[16] = {0};
     uint8_t write_test_data[16] = {0xaa, 0xbb, 0x56, 0x78, 0x9a, 0xbc, 0xde, 0xf0, 0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77, 0x88};
-    uint8_t ack_ok_flag = FALSE;
+//    uint8_t ack_ok_flag = FALSE;
     delay_ms(5000);
 
 

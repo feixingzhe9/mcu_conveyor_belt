@@ -161,6 +161,7 @@ void conveyor_belt_task(void *pdata)
                 switch(load_state)
                 {
                     case 0: //forward
+                        lock_ctrl(LOCK_STATUS_UNLOCK);
                         if(switch_state & PHO_SWITCH_3_TRIGGERED)
                         {
                             stop_conveyor_belt();   //stop immediately !
