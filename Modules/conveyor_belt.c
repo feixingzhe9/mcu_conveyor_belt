@@ -62,19 +62,7 @@ uint8_t set_conveyor_belt_stop(void)
 uint8_t lock_ctrl(uint8_t state)
 {
     return 1;
-//    if(state == LOCK_STATUS_LOCK)
-//    {
-//        lock_ctrl_lock();
-//    }
-//    else if(state == LOCK_STATUS_UNLOCK)
-//    {
-//        lock_ctrl_unlock();
-//    }
-//    else
-//    {
-//        return 0;
-//    }
-//    return 1;
+
 }
 
 

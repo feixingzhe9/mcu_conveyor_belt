@@ -10,10 +10,6 @@ typedef enum
 {
     PLATFORM_GPIO_SYS_LED,
 
-    PLATFORM_GPIO_PHO_SWITCH_1,
-    PLATFORM_GPIO_PHO_SWITCH_2,
-    PLATFORM_GPIO_PHO_SWITCH_3,
-
     PLATFORM_GPIO_MOTOR_EN,
     PLATFORM_GPIO_MOTOR_PWR_EN,
     PLATFORM_GPIO_MOTOR_DIR,
@@ -69,12 +65,8 @@ void mcu_restart(void);
 void hardware_init(void);
 void user_param_init(void);
 
-//uint8_t forward_conveyor_belt(void);
-//uint8_t reverse_conveyor_belt(void);
 uint8_t stop_conveyor_belt(void);
-//uint8_t get_pho_switch_1_state(void);
-//uint8_t get_pho_switch_2_state(void);
-//uint8_t get_pho_switch_3_state(void);
+
 void lock_ctrl_unlock(void);
 void lock_ctrl_lock(void);
 
@@ -89,20 +81,18 @@ uint8_t get_pho_switch_lower_insise_state(void);
 #endif
 
 
-//uint8_t forward_lower_conveyor_belt(void);
-//uint8_t forward_upper_conveyor_belt(void);
-
-//uint8_t reverse_lower_conveyor_belt(void);
-//uint8_t reverse_upper_conveyor_belt(void);
-
 uint8_t upper_conveyor_belt_load(void);
 uint8_t upper_conveyor_belt_unload(void);
 
 uint8_t lower_conveyor_belt_load(void);
 uint8_t lower_conveyor_belt_unload(void);
 
+uint8_t get_lower_door_down_limit_state(void);
+uint8_t get_lower_door_up_limit_state(void);
+uint8_t get_upper_door_down_limit_state(void);
+uint8_t get_upper_door_up_limit_state(void);
 
-uint8_t get_upper_door_state(void);
-uint8_t get_lower_door_state(void);
+void lower_door_ctrl(uint8_t en);
+void upper_door_ctrl(uint8_t en);
 
 #endif

@@ -17,9 +17,6 @@ const platform_gpio_t platform_gpio_pins[] =
 {
     [PLATFORM_GPIO_SYS_LED]                     = { GPIOB,  GPIO_Pin_3},
 
-    [PLATFORM_GPIO_PHO_SWITCH_3]                = {GPIOB, GPIO_Pin_4},
-    [PLATFORM_GPIO_PHO_SWITCH_2]                = {GPIOB, GPIO_Pin_5},
-    [PLATFORM_GPIO_PHO_SWITCH_1]                = {GPIOB, GPIO_Pin_6},
     [PLATFORM_GPIO_MOTOR_DIR]                   = {GPIOA, GPIO_Pin_6},
     [PLATFORM_GPIO_MOTOR_EN]                    = {GPIOA, GPIO_Pin_5},
     [PLATFORM_GPIO_MOTOR_PWR_EN]                = {GPIOA, GPIO_Pin_4},
@@ -142,7 +139,7 @@ static void upper_door_ctrl_gpio_init(void)
     GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
     GPIO_Init(GPIOB, &GPIO_InitStructure);
 
-    GPIO_ResetBits(GPIOB, GPIO_Pin_1);
+    GPIO_SetBits(GPIOB, GPIO_Pin_1);
 
 }
 
@@ -176,7 +173,7 @@ static void lower_door_ctrl_gpio_init(void)
     GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
     GPIO_Init(GPIOB, &GPIO_InitStructure);
 
-    GPIO_ResetBits(GPIOB, GPIO_Pin_10);
+    GPIO_SetBits(GPIOB, GPIO_Pin_10);
 }
 
 static void lower_door_detect_gpio_init(void)
@@ -196,6 +193,30 @@ static void lower_door_detect_gpio_init(void)
     GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN_FLOATING;
 
     GPIO_Init(GPIOA, &GPIO_InitStructure);
+}
+
+void upper_door_ctrl(uint8_t en)
+{
+    if(en)
+    {
+        GPIO_ResetBits(platform_gpio_pins[PLATFORM_GPIO_UPPER_DOOR_CTRL].GPIOx, platform_gpio_pins[PLATFORM_GPIO_UPPER_DOOR_CTRL].GPIO_Pin);
+    }
+    else
+    {
+        GPIO_SetBits(platform_gpio_pins[PLATFORM_GPIO_UPPER_DOOR_CTRL].GPIOx, platform_gpio_pins[PLATFORM_GPIO_UPPER_DOOR_CTRL].GPIO_Pin);
+    }
+}
+
+void lower_door_ctrl(uint8_t en)
+{
+    if(en)
+    {
+        GPIO_ResetBits(platform_gpio_pins[PLATFORM_GPIO_LOWER_DOOR_CTRL].GPIOx, platform_gpio_pins[PLATFORM_GPIO_LOWER_DOOR_CTRL].GPIO_Pin);
+    }
+    else
+    {
+        GPIO_SetBits(platform_gpio_pins[PLATFORM_GPIO_LOWER_DOOR_CTRL].GPIOx, platform_gpio_pins[PLATFORM_GPIO_LOWER_DOOR_CTRL].GPIO_Pin);
+    }
 }
 
 uint8_t get_upper_door_up_limit_state(void)
@@ -218,15 +239,7 @@ uint8_t get_lower_door_down_limit_state(void)
     return GPIO_ReadInputDataBit(platform_gpio_pins[PLATFORM_GPIO_DOOR_DETECT_LOWER_DOWN_LIMIT].GPIOx, platform_gpio_pins[PLATFORM_GPIO_DOOR_DETECT_LOWER_DOWN_LIMIT].GPIO_Pin) == 1 ? 0 : 1; 
 }
 
-uint8_t get_upper_door_state(void)
-{
-    return get_upper_door_up_limit_state() | (get_upper_door_down_limit_state() << 1);
-}
 
-uint8_t get_lower_door_state(void)
-{
-    return get_lower_door_up_limit_state() | (get_lower_door_down_limit_state() << 1);
-}
 
 void motor_pwr_on(void)
 {
@@ -250,9 +263,6 @@ static void platform_gpio_init(void)
     upper_door_detect_gpio_init();
     lower_door_ctrl_gpio_init();
     lower_door_detect_gpio_init();
-//    extern uint8_t set_conveyor_belt_load(uint8_t need_lock);
-//    extern uint8_t set_conveyor_belt_unload(void);
-    //set_conveyor_belt_load(1);
 }
 
 
@@ -360,43 +370,6 @@ uint8_t stop_conveyor_belt(void)
     return 1;
 }
 
-uint8_t get_pho_switch_1_state(void)
-{
-    if(GPIO_ReadInputDataBit(platform_gpio_pins[PLATFORM_GPIO_PHO_SWITCH_1].GPIOx, platform_gpio_pins[PLATFORM_GPIO_PHO_SWITCH_1].GPIO_Pin) == 1)
-    {
-        return 0;
-    }
-    else
-    {
-        return 1;
-    }
-}
-
-uint8_t get_pho_switch_2_state(void)
-{
-    if(GPIO_ReadInputDataBit(platform_gpio_pins[PLATFORM_GPIO_PHO_SWITCH_2].GPIOx, platform_gpio_pins[PLATFORM_GPIO_PHO_SWITCH_2].GPIO_Pin) == 1)
-    {
-        return 0;
-    }
-    else
-    {
-        return 1;
-    }
-}
-
-uint8_t get_pho_switch_3_state(void)
-{
-    if(GPIO_ReadInputDataBit(platform_gpio_pins[PLATFORM_GPIO_PHO_SWITCH_3].GPIOx, platform_gpio_pins[PLATFORM_GPIO_PHO_SWITCH_3].GPIO_Pin) == 1)
-    {
-        return 0;
-    }
-    else
-    {
-        return 1;
-    }
-}
-
-
 
 #if defined DOUBLE_DECK
 uint8_t get_pho_switch_upper_outsise_state(void)
@@ -433,8 +406,6 @@ uint8_t get_pho_switch_lower_insise_state(void)
 #endif
 
 
-
-
 uint32_t test_hardware_version = 0;
 void hardware_init(void)
 {
@@ -442,8 +413,6 @@ void hardware_init(void)
     led_init();
     init_can1();
     sanwei_rfid_init();
-    //test code
-    //test_sanwei_rfid_send_data();
 }
 
 void user_param_init(void)
