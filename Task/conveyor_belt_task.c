@@ -20,7 +20,7 @@ OS_STK pho_state_upload_task_stk[PHO_STATE_UPLOAD_TASK_STK_SIZE] = {0};
 
 OS_EVENT * pho_state_mailbox;
 
-extern void upload_conveyor_belt_status(uint8_t status);
+extern void upload_conveyor_belt_status(uint8_t conveyor_index, uint8_t status);
 
 
 typedef uint8_t (*forward_conveyor_belt_fn)(void);
@@ -173,9 +173,8 @@ void conveyor_belt_task(void *pdata)
 {
 
     set_work_conveyor(DECK_LOWER);
-//    set_conveyor_belt_load(0);
     delay_ms(3000);
-    set_conveyor_belt_load(0);
+//    set_conveyor_belt_load(0);
     while(1)
     {
         OS_ENTER_CRITICAL();
@@ -255,7 +254,7 @@ void conveyor_belt_task(void *pdata)
                         conveyor_belt[conveyor_index].work_mode = CONVEYOR_BELT_STATUS_STOP;
                         OS_EXIT_CRITICAL();
                         work_mode[conveyor_index] = CONVEYOR_BELT_STATUS_STOP;
-                        upload_conveyor_belt_status(CONVEYOR_LOAD_FINISHED_OK);
+                        upload_conveyor_belt_status(conveyor_index, CONVEYOR_LOAD_FINISHED_OK);
                         load_state[conveyor_index] = 0;
                         break;
 
@@ -268,7 +267,7 @@ void conveyor_belt_task(void *pdata)
                     conveyor_belt[conveyor_index].work_mode = CONVEYOR_BELT_STATUS_STOP;
                     OS_EXIT_CRITICAL();
                     work_mode[conveyor_index] = CONVEYOR_BELT_STATUS_STOP;
-                    upload_conveyor_belt_status(CONVEYOR_BELT_LOAD_TIME_OUT);
+                    upload_conveyor_belt_status(conveyor_index, CONVEYOR_BELT_LOAD_TIME_OUT);
                     load_state[conveyor_index] = 0;
                 }
             }
@@ -325,7 +324,7 @@ void conveyor_belt_task(void *pdata)
                             OS_EXIT_CRITICAL();
                             work_mode[conveyor_index] = CONVEYOR_BELT_STATUS_STOP;
                             unload_state[conveyor_index] = 0;
-                            upload_conveyor_belt_status(CONVEYOR_UNLOAD_FINISHED_OK);
+                            upload_conveyor_belt_status(conveyor_index, CONVEYOR_UNLOAD_FINISHED_OK);
                         }
                         break;
 
@@ -338,7 +337,7 @@ void conveyor_belt_task(void *pdata)
                     conveyor_belt[conveyor_index].work_mode = CONVEYOR_BELT_STATUS_STOP;
                     OS_EXIT_CRITICAL();
                     work_mode[conveyor_index] = CONVEYOR_BELT_STATUS_STOP;
-                    upload_conveyor_belt_status(CONVEYOR_BELT_UNLOAD_TIME_OUT);
+                    upload_conveyor_belt_status(conveyor_index, CONVEYOR_BELT_UNLOAD_TIME_OUT);
                     unload_state[conveyor_index] = 0;
                 }
             }

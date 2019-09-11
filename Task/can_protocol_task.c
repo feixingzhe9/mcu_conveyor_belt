@@ -164,7 +164,7 @@ void upload_sys_state(void)
     send_can_msg(&can_buf);
 }
 
-void upload_conveyor_belt_status(uint8_t status)
+void upload_conveyor_belt_status(uint8_t conveyor_index, uint8_t status)
 {
     can_id_union id;
     can_buf_t can_buf;
@@ -174,8 +174,9 @@ void upload_conveyor_belt_status(uint8_t status)
     id.can_id_t.source_id = CAN_SOURCE_ID_SET_CONVEYOR_BELT_DIRCTION;
     id.can_id_t.src_mac_id = CONVEYOR_CAN_MAC_SRC_ID;////
     can_buf.id = id.canx_id;
-    can_buf.data_len = 1;
-    can_buf.data[0] = status;
+    can_buf.data_len = 2;
+    can_buf.data[0] = conveyor_index;
+    can_buf.data[1] = status;
     send_can_msg(&can_buf);
 }
 
@@ -255,58 +256,70 @@ uint16_t CmdProcessing(can_id_union *id, uint8_t *data_in, uint16_t data_len, ui
 
                 case CAN_SOURCE_ID_SET_CONVEYOR_BELT_DIRCTION:
                 {
-                    uint8_t ret = 0;
-                    if(data_len <= 2)
+                    extern void set_work_conveyor(uint8_t deck);
+                    if(data_len <= 3)
                     {
-                        if(data_in[0] <= CONVEYOR_BELT_STATUS_UNLOAD)
+                        uint8_t ret = 0;
+                        uint8_t conveyor_index = data_in[0];
+                        uint8_t conveyor_state = data_in[1];
+                        uint8_t need_lock = data_in[2];
+                        if(conveyor_index < DECK_MAX)
                         {
-                            if(data_in[0] == CONVEYOR_BELT_STATUS_STOP)
+                            if(conveyor_state <= CONVEYOR_BELT_STATUS_UNLOAD)
                             {
-                                ret = set_conveyor_belt_stop();
-                                if(ret == CONVEYOR_BELT_EXEC_OK)
+                                set_work_conveyor(conveyor_index);
+                                if(conveyor_state == CONVEYOR_BELT_STATUS_STOP)
                                 {
-                                    data_out[0] = 0x01; //successful
-                                    data_out[1] = CONVEYOR_BELT_STATUS_STOP;
-                                    data_out[2] = CONVEYOR_BELT_EXEC_OK;
-                                }
-                            }
-                            else if(data_in[0] == CONVEYOR_BELT_STATUS_LOAD)
-                            {
-                                if(data_in[1] < 2)
-                                {
-                                    uint8_t need_lock = data_in[1];
-                                    ret = set_conveyor_belt_load(need_lock);
+                                    ret = set_conveyor_belt_stop();
                                     if(ret == CONVEYOR_BELT_EXEC_OK)
                                     {
-                                        data_out[0] = 0x01; //successful
-                                        data_out[1] = CONVEYOR_BELT_STATUS_LOAD;
-                                        data_out[2] = CONVEYOR_BELT_EXEC_OK;
+                                        data_out[0] = conveyor_index;
+                                        data_out[1] = 0x01; //successful
+                                        data_out[2] = CONVEYOR_BELT_STATUS_STOP;
+                                        data_out[3] = CONVEYOR_BELT_EXEC_OK;
+                                    }
+                                }
+                                else if(conveyor_state == CONVEYOR_BELT_STATUS_LOAD)
+                                {
+                                    if(need_lock < 2)
+                                    {
+                                        ret = set_conveyor_belt_load(need_lock);
+                                        if(ret == CONVEYOR_BELT_EXEC_OK)
+                                        {
+                                            data_out[0] = conveyor_index;
+                                            data_out[1] = 0x01; //successful
+                                            data_out[2] = CONVEYOR_BELT_STATUS_LOAD;
+                                            data_out[3] = CONVEYOR_BELT_EXEC_OK;
+                                        }
+                                        else
+                                        {
+                                            data_out[0] = conveyor_index;
+                                            data_out[1] = 0x00; //failed
+                                            data_out[2] = CONVEYOR_BELT_STATUS_LOAD;
+                                            data_out[3] = ret;
+                                        }
+                                    }
+                                }
+                                else if(conveyor_state == CONVEYOR_BELT_STATUS_UNLOAD)
+                                {
+                                    ret = set_conveyor_belt_unload();
+                                    if(ret == CONVEYOR_BELT_EXEC_OK)
+                                    {
+                                        data_out[0] = conveyor_index;
+                                        data_out[1] = 0x01; //successful
+                                        data_out[2] = CONVEYOR_BELT_STATUS_UNLOAD;
+                                        data_out[3] = CONVEYOR_BELT_EXEC_OK;
                                     }
                                     else
                                     {
-                                        data_out[0] = 0x00; //failed
-                                        data_out[1] = CONVEYOR_BELT_STATUS_LOAD;
-                                        data_out[2] = ret;
+                                        data_out[0] = conveyor_index;
+                                        data_out[1] = 0x00; //failed
+                                        data_out[2] = CONVEYOR_BELT_STATUS_UNLOAD;
+                                        data_out[3] = ret;
                                     }
                                 }
+                                return 4;
                             }
-                            else if(data_in[0] == CONVEYOR_BELT_STATUS_UNLOAD)
-                            {
-                                ret = set_conveyor_belt_unload();
-                                if(ret == CONVEYOR_BELT_EXEC_OK)
-                                {
-                                    data_out[0] = 0x01; //successful
-                                    data_out[1] = CONVEYOR_BELT_STATUS_UNLOAD;
-                                    data_out[2] = CONVEYOR_BELT_EXEC_OK;
-                                }
-                                else
-                                {
-                                    data_out[0] = 0x00; //failed
-                                    data_out[1] = CONVEYOR_BELT_STATUS_UNLOAD;
-                                    data_out[2] = ret;
-                                }
-                            }
-                            return 3;
                         }
                     }
                     return 0;
@@ -328,19 +341,22 @@ uint16_t CmdProcessing(can_id_union *id, uint8_t *data_in, uint16_t data_len, ui
 
                 case CAN_SOURCE_ID_LOCK_CTRL:
                 {
-                    uint8_t state = data_in[0];
-                    if(data_len == 1)
+                    uint8_t index = data_in[0];
+                    uint8_t state = data_in[1];
+                    if(data_len == 2)
                     {
                         if((state == LOCK_STATUS_LOCK) || (state == LOCK_STATUS_UNLOCK))
                         {
                             lock_ctrl(state);
-                            data_out[0] = state;
-                            return 1;
+                            data_out[0] = index;
+                            data_out[1] = state;
+                            return 2;
                         }
                         else
                         {
-                            data_out[0] = 0xff;
-                            return 0;
+                            data_out[0] = index;
+                            data_out[1] = 0xff;
+                            return 2;
                         }
                     }
                     return 0;
