@@ -7,12 +7,15 @@
 #include "can_protocol_task.h"
 #include "conveyor_belt_task.h"
 #include "sanwei_rfid_task.h"
+#include "door_ctrl.h"
 
 typedef enum
 {
     CAN_SEND_TASK_PRIO = 5,
     CAN_RPOTOCOL_TASK_PRIO,
     PHO_SWITCH_STATUS_PRIO,
+    DOOR_STATE_DETECTION_PRIO,
+    DOOR_CTRL_TASK_PRIO,
     CONVEYOR_BELT_PRIO,
     PHO_STATE_UPLOAD_TASK_PRIO,
     SANWEI_RFID_RCV_TASK_PRIO,

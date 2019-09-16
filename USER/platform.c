@@ -44,7 +44,7 @@ const platform_gpio_t platform_gpio_pins[] =
     [PLATFORM_GPIO_DOOR_DETECT_UPPER_DOWN_LIMIT]= {GPIOA, GPIO_Pin_8},
     [PLATFORM_GPIO_DOOR_DETECT_UPPER_UP_LIMIT]  = {GPIOB, GPIO_Pin_4},
 
-    [PLATFORM_GPIO_DOOR_DETECT_LOWER_DOWN_LIMIT]= {GPIOA, GPIO_Pin_14},
+    [PLATFORM_GPIO_DOOR_DETECT_LOWER_DOWN_LIMIT]= {GPIOB, GPIO_Pin_14},
     [PLATFORM_GPIO_DOOR_DETECT_LOWER_UP_LIMIT]  = {GPIOB, GPIO_Pin_15},
 #endif
 };
@@ -181,18 +181,10 @@ static void lower_door_detect_gpio_init(void)
     GPIO_InitTypeDef  GPIO_InitStructure;
     /*GPIO_B*/
     RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOB, ENABLE);
-    GPIO_InitStructure.GPIO_Pin = GPIO_Pin_15;
+    GPIO_InitStructure.GPIO_Pin = GPIO_Pin_14 | GPIO_Pin_15;
     GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN_FLOATING;
 
     GPIO_Init(GPIOB, &GPIO_InitStructure);
-
-
-    /*GPIO_A*/
-    RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOA, ENABLE);
-    GPIO_InitStructure.GPIO_Pin = GPIO_Pin_14;
-    GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN_FLOATING;
-
-    GPIO_Init(GPIOA, &GPIO_InitStructure);
 }
 
 void upper_door_ctrl(uint8_t en)

@@ -15,6 +15,9 @@
 uint8_t upper_door_limit_state = 0;
 uint8_t lower_door_limit_state = 0;
 
+OS_STK door_ctrl_task_stk[DOOR_CTRL_TASK_STK_SIZE] = {0};
+OS_STK door_state_detection_task_stk[DOOR_STATE_DETECTION_TASK_STK_SIZE] = {0};
+
 
 uint8_t get_upper_door_state(void)
 {
@@ -148,5 +151,6 @@ void door_ctrl_task(void *pdata)
     reset_lower_door_position();
     for(;;)
     {
+        delay_ms(20);
     }
 }

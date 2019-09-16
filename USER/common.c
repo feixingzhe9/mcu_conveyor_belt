@@ -10,6 +10,8 @@ static void task_create(void)
     OSTaskCreate(can_protocol_task,                 (void *)0,  (OS_STK*)&can_protocol_task_stk[CAN_PROTOCOL_TASK_STK_SIZE - 1],                    CAN_RPOTOCOL_TASK_PRIO);
     OSTaskCreate(can_send_task,                     (void *)0,  (OS_STK*)&can_send_task_stk[CAN_SEND_TASK_STK_SIZE - 1],                            CAN_SEND_TASK_PRIO);
     OSTaskCreate(pho_switch_status_task,            (void *)0,  (OS_STK*)&pho_switch_status_task_stk[PHO_SWITCH_STATUS_TASK_STK_SIZE - 1],          PHO_SWITCH_STATUS_PRIO);
+    OSTaskCreate(door_state_detect_task,            (void *)0,  (OS_STK*)&door_state_detection_task_stk[DOOR_STATE_DETECTION_TASK_STK_SIZE - 1],    DOOR_STATE_DETECTION_PRIO);
+    OSTaskCreate(door_ctrl_task,                    (void *)0,  (OS_STK*)&door_ctrl_task_stk[DOOR_CTRL_TASK_STK_SIZE - 1],                          DOOR_CTRL_TASK_PRIO);
     OSTaskCreate(conveyor_belt_task,                (void *)0,  (OS_STK*)&conveyor_belt_task_stk[CONVEYOR_BELT_TASK_STK_SIZE - 1],                  CONVEYOR_BELT_PRIO);
     OSTaskCreate(indicator_led_task,                (void *)0,  (OS_STK*)&indicator_led_task_stk[INDICATOR_LED_STK_SIZE - 1],                       INDICATOR_LED_TASK_PRIO);
     OSTaskCreate(upload_pho_state_upload_task,      (void *)0,  (OS_STK*)&pho_state_upload_task_stk[PHO_STATE_UPLOAD_TASK_STK_SIZE - 1],            PHO_STATE_UPLOAD_TASK_PRIO);

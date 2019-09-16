@@ -6,11 +6,23 @@
 #include "ucos_ii.h"
 
 
+#define DOOR_CTRL_TASK_STK_SIZE                         128
+#define DOOR_STATE_DETECTION_TASK_STK_SIZE              64
+
 #define UPPER_UP_LIMIT_TRIGGED              1
 #define UPPER_DOWN_LIMIT_TRIGGED            2
 
 #define LOWER_UP_LIMIT_TRIGGED              1
 #define LOWER_DOWN_LIMIT_TRIGGED            2
+
+
+extern OS_STK door_ctrl_task_stk[DOOR_CTRL_TASK_STK_SIZE];
+extern OS_STK door_state_detection_task_stk[DOOR_STATE_DETECTION_TASK_STK_SIZE];
+
+void door_state_detect_task(void *pdata);
+void door_ctrl_task(void *pdata);
+
+
 
 
 #endif
