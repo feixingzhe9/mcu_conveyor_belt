@@ -38,8 +38,11 @@ const platform_gpio_t platform_gpio_pins[] =
     [PLATFORM_GPIO_LOWER_MOTOR_UNLOAD]          = {GPIOB, GPIO_Pin_0},
 
 
-    [PLATFORM_GPIO_UPPER_DOOR_CTRL]             = {GPIOB, GPIO_Pin_1},
-    [PLATFORM_GPIO_LOWER_DOOR_CTRL]             = {GPIOB, GPIO_Pin_10},
+    [PLATFORM_GPIO_UPPER_DOOR_OPEN_CTRL]             = {GPIOB, GPIO_Pin_1},
+    [PLATFORM_GPIO_UPPER_DOOR_EN_CTRL]             = {GPIOB, GPIO_Pin_10},
+
+    [PLATFORM_GPIO_LOWER_DOOR_OPEN_CTRL]             = {GPIOA, GPIO_Pin_9},
+    [PLATFORM_GPIO_LOWER_DOOR_EN_CTRL]             = {GPIOA, GPIO_Pin_10},
 
     [PLATFORM_GPIO_DOOR_DETECT_UPPER_DOWN_LIMIT]= {GPIOA, GPIO_Pin_8},
     [PLATFORM_GPIO_DOOR_DETECT_UPPER_UP_LIMIT]  = {GPIOB, GPIO_Pin_4},
@@ -134,12 +137,12 @@ static void upper_door_ctrl_gpio_init(void)
 
     /*GPIO_B*/
     RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOB, ENABLE);
-    GPIO_InitStructure.GPIO_Pin = GPIO_Pin_1;
+    GPIO_InitStructure.GPIO_Pin = GPIO_Pin_1 | GPIO_Pin_10;
     GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;
     GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
     GPIO_Init(GPIOB, &GPIO_InitStructure);
 
-    GPIO_SetBits(GPIOB, GPIO_Pin_1);
+    GPIO_SetBits(GPIOB, GPIO_Pin_1 | GPIO_Pin_10);
 
 }
 
@@ -166,14 +169,14 @@ static void lower_door_ctrl_gpio_init(void)
 {
     GPIO_InitTypeDef  GPIO_InitStructure;
 
-    /*GPIO_B*/
-    RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOB, ENABLE);
-    GPIO_InitStructure.GPIO_Pin = GPIO_Pin_10;
+    /*GPIO_A*/
+    RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOA/* | RCC_APB2Periph_AFIO*/, ENABLE);
+    GPIO_InitStructure.GPIO_Pin = GPIO_Pin_10 | GPIO_Pin_9;
     GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;
     GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
-    GPIO_Init(GPIOB, &GPIO_InitStructure);
+    GPIO_Init(GPIOA, &GPIO_InitStructure);
 
-    GPIO_SetBits(GPIOB, GPIO_Pin_10);
+    GPIO_ResetBits(GPIOA, GPIO_Pin_10 | GPIO_Pin_9);
 }
 
 static void lower_door_detect_gpio_init(void)
@@ -191,25 +194,44 @@ void upper_door_ctrl(uint8_t en)
 {
     if(en)
     {
-        GPIO_ResetBits(platform_gpio_pins[PLATFORM_GPIO_UPPER_DOOR_CTRL].GPIOx, platform_gpio_pins[PLATFORM_GPIO_UPPER_DOOR_CTRL].GPIO_Pin);
+        GPIO_SetBits(platform_gpio_pins[PLATFORM_GPIO_UPPER_DOOR_OPEN_CTRL].GPIOx, platform_gpio_pins[PLATFORM_GPIO_UPPER_DOOR_OPEN_CTRL].GPIO_Pin);
+        GPIO_ResetBits(platform_gpio_pins[PLATFORM_GPIO_UPPER_DOOR_EN_CTRL].GPIOx, platform_gpio_pins[PLATFORM_GPIO_UPPER_DOOR_EN_CTRL].GPIO_Pin);
     }
     else
     {
-        GPIO_SetBits(platform_gpio_pins[PLATFORM_GPIO_UPPER_DOOR_CTRL].GPIOx, platform_gpio_pins[PLATFORM_GPIO_UPPER_DOOR_CTRL].GPIO_Pin);
+        GPIO_ResetBits(platform_gpio_pins[PLATFORM_GPIO_UPPER_DOOR_EN_CTRL].GPIOx, platform_gpio_pins[PLATFORM_GPIO_UPPER_DOOR_EN_CTRL].GPIO_Pin);
+        GPIO_ResetBits(platform_gpio_pins[PLATFORM_GPIO_UPPER_DOOR_OPEN_CTRL].GPIOx, platform_gpio_pins[PLATFORM_GPIO_UPPER_DOOR_OPEN_CTRL].GPIO_Pin);
     }
 }
+
+void stop_upper_door(void)
+{
+    GPIO_SetBits(platform_gpio_pins[PLATFORM_GPIO_UPPER_DOOR_EN_CTRL].GPIOx, platform_gpio_pins[PLATFORM_GPIO_UPPER_DOOR_EN_CTRL].GPIO_Pin);
+    GPIO_SetBits(platform_gpio_pins[PLATFORM_GPIO_UPPER_DOOR_OPEN_CTRL].GPIOx, platform_gpio_pins[PLATFORM_GPIO_UPPER_DOOR_OPEN_CTRL].GPIO_Pin);
+}
+
 
 void lower_door_ctrl(uint8_t en)
 {
     if(en)
     {
-        GPIO_ResetBits(platform_gpio_pins[PLATFORM_GPIO_LOWER_DOOR_CTRL].GPIOx, platform_gpio_pins[PLATFORM_GPIO_LOWER_DOOR_CTRL].GPIO_Pin);
+        GPIO_SetBits(platform_gpio_pins[PLATFORM_GPIO_LOWER_DOOR_OPEN_CTRL].GPIOx, platform_gpio_pins[PLATFORM_GPIO_LOWER_DOOR_OPEN_CTRL].GPIO_Pin);
+        GPIO_SetBits(platform_gpio_pins[PLATFORM_GPIO_LOWER_DOOR_EN_CTRL].GPIOx, platform_gpio_pins[PLATFORM_GPIO_LOWER_DOOR_EN_CTRL].GPIO_Pin);
     }
     else
     {
-        GPIO_SetBits(platform_gpio_pins[PLATFORM_GPIO_LOWER_DOOR_CTRL].GPIOx, platform_gpio_pins[PLATFORM_GPIO_LOWER_DOOR_CTRL].GPIO_Pin);
+        GPIO_ResetBits(platform_gpio_pins[PLATFORM_GPIO_LOWER_DOOR_OPEN_CTRL].GPIOx, platform_gpio_pins[PLATFORM_GPIO_LOWER_DOOR_OPEN_CTRL].GPIO_Pin);
+        GPIO_SetBits(platform_gpio_pins[PLATFORM_GPIO_LOWER_DOOR_EN_CTRL].GPIOx, platform_gpio_pins[PLATFORM_GPIO_LOWER_DOOR_EN_CTRL].GPIO_Pin);
     }
 }
+
+
+void stop_lower_door(void)
+{
+    GPIO_ResetBits(platform_gpio_pins[PLATFORM_GPIO_LOWER_DOOR_OPEN_CTRL].GPIOx, platform_gpio_pins[PLATFORM_GPIO_LOWER_DOOR_OPEN_CTRL].GPIO_Pin);
+    GPIO_ResetBits(platform_gpio_pins[PLATFORM_GPIO_LOWER_DOOR_EN_CTRL].GPIOx, platform_gpio_pins[PLATFORM_GPIO_LOWER_DOOR_EN_CTRL].GPIO_Pin);
+}
+
 
 uint8_t get_upper_door_up_limit_state(void)
 {

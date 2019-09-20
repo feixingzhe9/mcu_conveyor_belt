@@ -9,11 +9,11 @@
 #define DOOR_CTRL_TASK_STK_SIZE                         128
 #define DOOR_STATE_DETECTION_TASK_STK_SIZE              64
 
-#define UPPER_UP_LIMIT_TRIGGED              1
-#define UPPER_DOWN_LIMIT_TRIGGED            2
+#define UPPER_UP_LIMIT_TRIGGED              0x01
+#define UPPER_DOWN_LIMIT_TRIGGED            0x02
 
-#define LOWER_UP_LIMIT_TRIGGED              1
-#define LOWER_DOWN_LIMIT_TRIGGED            2
+#define LOWER_UP_LIMIT_TRIGGED              0x10
+#define LOWER_DOWN_LIMIT_TRIGGED            0x20
 
 
 extern OS_STK door_ctrl_task_stk[DOOR_CTRL_TASK_STK_SIZE];

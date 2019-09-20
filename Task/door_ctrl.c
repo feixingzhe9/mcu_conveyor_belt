@@ -14,6 +14,7 @@
 #define LOWER_STATE_DEBOUNCE_CNT    3
 uint8_t upper_door_limit_state = 0;
 uint8_t lower_door_limit_state = 0;
+uint8_t door_limit_state = 0;
 
 OS_STK door_ctrl_task_stk[DOOR_CTRL_TASK_STK_SIZE] = {0};
 OS_STK door_state_detection_task_stk[DOOR_STATE_DETECTION_TASK_STK_SIZE] = {0};
@@ -57,6 +58,8 @@ void door_state_detect_task(void *pdata)
             upper_state_cnt = 0;
             OS_ENTER_CRITICAL();
             upper_door_limit_state = upper_state;
+            door_limit_state &= 0xf0;
+            door_limit_state += upper_state;
             OS_EXIT_CRITICAL();
             /*
             TODO: post state
@@ -79,6 +82,8 @@ void door_state_detect_task(void *pdata)
             lower_state_cnt = 0;
             OS_ENTER_CRITICAL();
             lower_door_limit_state = lower_state;
+            door_limit_state &= 0x0f;
+            door_limit_state += lower_state;
             OS_EXIT_CRITICAL();
             /*
             TODO: post state
@@ -89,23 +94,44 @@ void door_state_detect_task(void *pdata)
     }
 }
 
-#define DOOR_MOVE_TIME_MAX      (5 * OS_TICKS_PER_SEC)
+#define DOOR_MOVE_TIME_MAX      (10 * OS_TICKS_PER_SEC)
 
 int reset_lower_door_position(void)
 {
+    upper_door_ctrl(0);
+    //lower_door_ctrl(0);
+    delay_ms(1000 * 10);
+    return 0;
+}
+
+
+#define DOOR_MOVE_DIR_UP        1
+#define DOOR_MOVE_DIR_DOWN      0
+
+
+typedef uint8_t (*door_ctrl_fn)(uint8_t);
+typedef uint8_t (*stop_door_fn)(void);
+
+int door_operation(door_ctrl_fn ctrl, uint8_t dir, uint8_t stop_condition, stop_door_fn stop_door )
+{
     uint32_t start_tick = 0;
-    uint8_t lower_state = 0;
-    uint8_t machine_state = 0;
+    uint8_t state = 0;
+    int ret = -1;
     OS_ENTER_CRITICAL();
-    lower_state = lower_door_limit_state;
+    state = door_limit_state;
     OS_EXIT_CRITICAL();
-    if((get_upper_door_state() & UPPER_UP_LIMIT_TRIGGED) == 0)
+    if((state & stop_condition) == 0)
     {
-        lower_door_ctrl(1);
+        ctrl(dir);
         start_tick = get_tick();
     }
+    else
+    {
+        ret = 0;
+        goto exit;
+    }
 
-    while((lower_state & UPPER_UP_LIMIT_TRIGGED) == 0)
+    while((state & stop_condition) == 0)
     {
         delay_ms(20);
         if(get_tick() - start_tick >= DOOR_MOVE_TIME_MAX)
@@ -113,42 +139,48 @@ int reset_lower_door_position(void)
             /*
             timeout
             */
-            return -1;
+            ret = -1;
+            goto exit;
         }
+
         OS_ENTER_CRITICAL();
-        lower_state = lower_door_limit_state;
+        state = door_limit_state;
         OS_EXIT_CRITICAL();
-        switch(machine_state)
-        {
-            case 0:     //wait for reaching down limit
-                if(lower_state & UPPER_DOWN_LIMIT_TRIGGED)
-                {
-                    lower_door_ctrl(0);
-                    delay_ms(500);
-                    machine_state = 1;
-                    start_tick = get_tick();
-                }
-                break;
-            case 1:     //reached down limit, restart to move the door
-                lower_door_ctrl(1);
-                machine_state = 2;
-                break;
-            case 2:
-                if(lower_state & UPPER_UP_LIMIT_TRIGGED)
-                {
-                    return 0;
-                }
-                break;
-        }
     }
-    return 0;
+exit:
+    stop_door();
+    return ret;
 }
+
+
+int open_lower_door(void)
+{
+    return door_operation((door_ctrl_fn)lower_door_ctrl, DOOR_MOVE_DIR_UP, LOWER_UP_LIMIT_TRIGGED, (stop_door_fn)stop_lower_door);
+}
+
+
+int close_lower_door(void)
+{
+    return door_operation((door_ctrl_fn)lower_door_ctrl, DOOR_MOVE_DIR_DOWN, LOWER_DOWN_LIMIT_TRIGGED, (stop_door_fn)stop_lower_door);
+}
+
+int open_upper_door(void)
+{
+    return door_operation((door_ctrl_fn)upper_door_ctrl, DOOR_MOVE_DIR_DOWN, UPPER_DOWN_LIMIT_TRIGGED, (stop_door_fn)stop_upper_door);
+}
+
+int close_upper_door(void)
+{
+    return door_operation((door_ctrl_fn)upper_door_ctrl, DOOR_MOVE_DIR_UP, UPPER_UP_LIMIT_TRIGGED, (stop_door_fn)stop_upper_door);
+}
+
+
 
 void door_ctrl_task(void *pdata)
 {
-    delay_ms(3000);     //wait for door state deteciton ready
-    //校准位置
-    reset_lower_door_position();
+    delay_ms(5000);     //wait for door state deteciton ready
+    close_upper_door();
+    close_lower_door();
     for(;;)
     {
         delay_ms(20);

@@ -174,7 +174,7 @@ void conveyor_belt_task(void *pdata)
 
     set_work_conveyor(DECK_LOWER);
     delay_ms(3000);
-//    set_conveyor_belt_load(0);
+    set_conveyor_belt_load(0);
     while(1)
     {
         OS_ENTER_CRITICAL();
